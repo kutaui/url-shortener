@@ -1,8 +1,9 @@
 CREATE TABLE urls
 (
     id         BIGSERIAL PRIMARY KEY,
-    long_url   VARCHAR(255) NOT NULL UNIQUE,
+    long_url   VARCHAR(2048) NOT NULL UNIQUE,
     short_url  VARCHAR(255) NOT NULL UNIQUE,
+    code       VARCHAR(255) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -35,4 +36,5 @@ CREATE INDEX idx_user_urls_url_id ON user_urls (url_id);
 
 CREATE INDEX idx_clicks_url_id ON clicks (url_id);
 
+CREATE INDEX idx_urls_code ON urls (code);
 

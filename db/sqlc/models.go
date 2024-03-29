@@ -18,6 +18,7 @@ type Url struct {
 	ID        int64
 	LongUrl   string
 	ShortUrl  string
+	Code      string
 	CreatedAt pgtype.Timestamp
 }
 

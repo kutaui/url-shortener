@@ -41,9 +41,16 @@ FROM urls
 WHERE id = $1
 `
 
-func (q *Queries) GetUrlById(ctx context.Context, id int64) (Url, error) {
+type GetUrlByIdRow struct {
+	ID        int64
+	LongUrl   string
+	ShortUrl  string
+	CreatedAt pgtype.Timestamp
+}
+
+func (q *Queries) GetUrlById(ctx context.Context, id int64) (GetUrlByIdRow, error) {
 	row := q.db.QueryRow(ctx, getUrlById, id)
-	var i Url
+	var i GetUrlByIdRow
 	err := row.Scan(
 		&i.ID,
 		&i.LongUrl,
@@ -78,15 +85,22 @@ FROM user_urls AS uu
 WHERE uu.user_id = $1
 `
 
-func (q *Queries) GetUserUrlsByUser(ctx context.Context, userID pgtype.Int8) ([]Url, error) {
+type GetUserUrlsByUserRow struct {
+	ID        int64
+	LongUrl   string
+	ShortUrl  string
+	CreatedAt pgtype.Timestamp
+}
+
+func (q *Queries) GetUserUrlsByUser(ctx context.Context, userID pgtype.Int8) ([]GetUserUrlsByUserRow, error) {
 	rows, err := q.db.Query(ctx, getUserUrlsByUser, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Url
+	var items []GetUserUrlsByUserRow
 	for rows.Next() {
-		var i Url
+		var i GetUserUrlsByUserRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.LongUrl,
