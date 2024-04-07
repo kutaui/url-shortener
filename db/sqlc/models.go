@@ -20,18 +20,12 @@ type Url struct {
 	ShortUrl  string
 	Code      string
 	CreatedAt pgtype.Timestamp
+	UserID    pgtype.Int8
 }
 
 type User struct {
 	ID        int64
 	Email     string
 	Password  string
-	CreatedAt pgtype.Timestamp
-}
-
-type UserUrl struct {
-	ID        int64
-	UserID    pgtype.Int8
-	UrlID     pgtype.Int8
 	CreatedAt pgtype.Timestamp
 }

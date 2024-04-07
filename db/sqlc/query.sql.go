@@ -13,13 +13,10 @@ import (
 
 const createUrl = `-- name: CreateUrl :one
 WITH new_url AS (
-    INSERT INTO urls (long_url, short_url)
-        VALUES ($1, $2)
-        RETURNING id
+    INSERT INTO urls (long_url, short_url, user_id)
+    VALUES ($1, $2, $3) RETURNING id
 )
-INSERT INTO user_urls (user_id, url_id)
-SELECT $3, id FROM new_url
-RETURNING url_id
+SELECT id FROM new_url
 `
 
 type CreateUrlParams struct {
@@ -28,17 +25,50 @@ type CreateUrlParams struct {
 	UserID   pgtype.Int8
 }
 
-func (q *Queries) CreateUrl(ctx context.Context, arg CreateUrlParams) (pgtype.Int8, error) {
+func (q *Queries) CreateUrl(ctx context.Context, arg CreateUrlParams) (int64, error) {
 	row := q.db.QueryRow(ctx, createUrl, arg.LongUrl, arg.ShortUrl, arg.UserID)
-	var url_id pgtype.Int8
-	err := row.Scan(&url_id)
-	return url_id, err
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id
+`
+
+type CreateUserParams struct {
+	Email    string
+	Password string
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.Password)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const getClicksByUrlId = `-- name: GetClicksByUrlId :one
+SELECT COUNT(*) FROM clicks WHERE url_id = $1
+`
+
+func (q *Queries) GetClicksByUrlId(ctx context.Context, urlID pgtype.Int8) (int64, error) {
+	row := q.db.QueryRow(ctx, getClicksByUrlId, urlID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const getUrlById = `-- name: GetUrlById :one
-SELECT id, long_url, short_url, created_at
-FROM urls
-WHERE id = $1
+SELECT
+    id,
+    long_url,
+    short_url,
+    created_at
+FROM
+    urls
+WHERE
+    id = $1 LIMIT 1
 `
 
 type GetUrlByIdRow struct {
@@ -60,29 +90,40 @@ func (q *Queries) GetUrlById(ctx context.Context, id int64) (GetUrlByIdRow, erro
 	return i, err
 }
 
-const getUserUrlById = `-- name: GetUserUrlById :one
-SELECT uu.url_id, uu.user_id
-FROM user_urls AS uu
-WHERE uu.url_id = $1
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT
+    id,
+    email,
+    password,
+    created_at
+FROM
+    users
+WHERE
+    email = $1 LIMIT 1
 `
 
-type GetUserUrlByIdRow struct {
-	UrlID  pgtype.Int8
-	UserID pgtype.Int8
-}
-
-func (q *Queries) GetUserUrlById(ctx context.Context, urlID pgtype.Int8) (GetUserUrlByIdRow, error) {
-	row := q.db.QueryRow(ctx, getUserUrlById, urlID)
-	var i GetUserUrlByIdRow
-	err := row.Scan(&i.UrlID, &i.UserID)
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Password,
+		&i.CreatedAt,
+	)
 	return i, err
 }
 
-const getUserUrlsByUser = `-- name: GetUserUrlsByUser :many
-SELECT u.id, u.long_url, u.short_url, u.created_at
-FROM user_urls AS uu
-         JOIN urls AS u ON uu.url_id = u.id
-WHERE uu.user_id = $1
+const getUserUrlsByUser = `-- name: GetUserUrlsByUser :one
+SELECT
+    u.id,
+    u.long_url,
+    u.short_url,
+    u.created_at
+FROM
+    urls AS u
+WHERE
+    u.user_id = $1 LIMIT 1
 `
 
 type GetUserUrlsByUserRow struct {
@@ -92,27 +133,26 @@ type GetUserUrlsByUserRow struct {
 	CreatedAt pgtype.Timestamp
 }
 
-func (q *Queries) GetUserUrlsByUser(ctx context.Context, userID pgtype.Int8) ([]GetUserUrlsByUserRow, error) {
-	rows, err := q.db.Query(ctx, getUserUrlsByUser, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetUserUrlsByUserRow
-	for rows.Next() {
-		var i GetUserUrlsByUserRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.LongUrl,
-			&i.ShortUrl,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) GetUserUrlsByUser(ctx context.Context, userID pgtype.Int8) (GetUserUrlsByUserRow, error) {
+	row := q.db.QueryRow(ctx, getUserUrlsByUser, userID)
+	var i GetUserUrlsByUserRow
+	err := row.Scan(
+		&i.ID,
+		&i.LongUrl,
+		&i.ShortUrl,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const recordClick = `-- name: RecordClick :exec
+INSERT INTO
+    clicks (url_id)
+VALUES
+    ($1)
+`
+
+func (q *Queries) RecordClick(ctx context.Context, urlID pgtype.Int8) error {
+	_, err := q.db.Exec(ctx, recordClick, urlID)
+	return err
 }
