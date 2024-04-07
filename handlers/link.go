@@ -4,13 +4,14 @@ import (
 	rand "crypto/rand"
 	"encoding/json"
 	"fmt"
-	db "github.com/kutaui/url-shortener/db/sqlc"
 	"io"
 	"log"
 	random "math/rand"
 	"net/http"
 	"strings"
 	"time"
+
+	db "github.com/kutaui/url-shortener/db/sqlc"
 )
 
 type LinkRequest struct {
@@ -31,6 +32,7 @@ func CreateShortenedLink(q *db.Queries) http.HandlerFunc {
 			http.Error(w, "Failed to decode JSON", http.StatusBadRequest)
 			return
 		}
+
 		code := generateBase62(5)
 
 		fmt.Println(r.Host + "/" + code)

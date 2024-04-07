@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5"
-	"github.com/joho/godotenv"
-	"github.com/kutaui/url-shortener/db/sqlc"
-	"github.com/kutaui/url-shortener/handlers"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/joho/godotenv"
+	db "github.com/kutaui/url-shortener/db/sqlc"
+	"github.com/kutaui/url-shortener/handlers"
 )
 
 var ctx = context.Background()
@@ -29,6 +30,7 @@ func main() {
 	router := http.NewServeMux()
 
 	router.HandleFunc("POST /link/create", handlers.CreateShortenedLink(q))
+	router.HandleFunc("POST /register", handlers.Register(q))
 
 	server := &http.Server{
 		Addr:    ":8080",
