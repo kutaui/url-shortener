@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func GenerateJWT(userId int) (string, error) {
+func GenerateJWT(userId int64) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"exp":    time.Now().Add(time.Hour * 24 * 7).Unix(),

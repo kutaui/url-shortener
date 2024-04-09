@@ -23,6 +23,8 @@ type RegisterRequest struct {
 
 func Register(q *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		utils.EnableCORS(w, r)
+		w.Header().Set("Content-Type", "application/json")
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -57,15 +59,20 @@ func Register(q *db.Queries) http.HandlerFunc {
 
 		RegisterRequest.Password = string(hashedPassword)
 
-		_, err = q.CreateUser(r.Context(), db.CreateUserParams(RegisterRequest))
+		var userId int64
+		userId, err = q.CreateUser(r.Context(), db.CreateUserParams{Email: RegisterRequest.Email, Password: RegisterRequest.Password})
 		if err != nil {
 			http.Error(w, "Failed to create user", http.StatusInternalServerError)
 			fmt.Println(err)
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json")
+		token, err := utils.GenerateJWT(userId)
+		if err != nil {
+			http.Error(w, "Failed to generate JWT", http.StatusInternalServerError)
+			return
+		}
+
 		response := Response{
 			Status:  "ok",
 			Message: "User created successfully",
@@ -76,6 +83,24 @@ func Register(q *db.Queries) http.HandlerFunc {
 			return
 		}
 
+		cookie := http.Cookie{
+			Name:     "token",
+			Value:    token,
+			Path:     "/",
+			MaxAge:   3600,
+			HttpOnly: false,
+			Secure:   true,
+			SameSite: http.SameSiteNoneMode,
+		}
+
+		http.SetCookie(w, &cookie)
 		_, _ = w.Write(responseJSON)
+	}
+}
+
+func Login(q *db.Queries) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		utils.EnableCORS(w, r)
+		w.Header().Set("Content-Type", "application/json")
 	}
 }
