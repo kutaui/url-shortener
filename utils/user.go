@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"context"
+	"fmt"
+	"net/http"
 	"os"
 	"time"
 
@@ -22,8 +25,7 @@ func GenerateJWT(userId int64) (string, error) {
 
 	return tokenString, nil
 }
-
-func VerifyJWT(tokenString string) (float64, error) {
+func VerifyJWT(tokenString string) (int64, error) {
 	secret := os.Getenv("JWT_SECRET")
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
@@ -37,8 +39,12 @@ func VerifyJWT(tokenString string) (float64, error) {
 		return 0, err
 	}
 
-	userId := claims["userId"].(float64)
-	return userId, nil
+	userId, ok := claims["userId"].(float64)
+	if !ok {
+		return 0, fmt.Errorf("userId claim is not a float64")
+	}
+
+	return int64(userId), nil
 }
 
 func HashPassword(password string) (string, error) {
@@ -49,4 +55,28 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		EnableCORS(w, r)
+
+		cookie, err := r.Cookie("token")
+		if err != nil {
+			http.Error(w, "Missing or invalid token", http.StatusUnauthorized)
+			return
+		}
+
+		userID, err := VerifyJWT(cookie.Value)
+		if err != nil {
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			return
+		}
+
+		// maybe we can query the database with the ID to get the user then pass that, time will tell if we need a user or just the ID
+		ctx := context.WithValue(r.Context(), "userID", userID)
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
+	}
 }

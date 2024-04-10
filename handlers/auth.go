@@ -142,6 +142,7 @@ func Login(q *db.Queries) http.HandlerFunc {
 			Status:  "ok",
 			Message: "Login successful",
 		}
+
 		responseJSON, err := json.Marshal(response)
 		if err != nil {
 			http.Error(w, "Failed to marshal response", http.StatusInternalServerError)

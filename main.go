@@ -7,12 +7,11 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/kutaui/url-shortener/utils"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 	db "github.com/kutaui/url-shortener/db/sqlc"
 	"github.com/kutaui/url-shortener/handlers"
+	"github.com/kutaui/url-shortener/utils"
 )
 
 var ctx = context.Background()
@@ -31,32 +30,15 @@ func main() {
 	q := db.New(conn)
 	router := http.NewServeMux()
 
-	router.HandleFunc("POST /link/create", handlers.CreateShortenedLink(q))
+	router.HandleFunc("POST /link/create", utils.AuthMiddleware(handlers.CreateShortenedLink(q)))
 	router.HandleFunc("POST /register", handlers.Register(q))
 	router.HandleFunc("POST /login", handlers.Login(q))
 
-	router.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		utils.EnableCORS(w, r)
-		w.Header().Set("Content-Type", "application/json")
+	router.HandleFunc("GET /ping", utils.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		userID := fmt.Sprintf("%v", r.Context().Value("userID"))
+		fmt.Fprintf(w, "pong, userID: %s", userID)
 
-		jwtToken, err := utils.GenerateJWT(1)
-		if err != nil {
-			http.Error(w, "Failed to generate JWT", http.StatusInternalServerError)
-			return
-		}
-		cookie := http.Cookie{
-			Name:     "token",
-			Value:    jwtToken,
-			Path:     "/",
-			MaxAge:   3600,
-			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteLaxMode,
-		}
-
-		http.SetCookie(w, &cookie)
-
-	})
+	}))
 
 	server := &http.Server{
 		Addr:    ":8080",
