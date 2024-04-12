@@ -25,6 +25,7 @@ func GenerateJWT(userId int64) (string, error) {
 
 	return tokenString, nil
 }
+
 func VerifyJWT(tokenString string) (int64, error) {
 	secret := os.Getenv("JWT_SECRET")
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -74,6 +75,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// maybe we can query the database with the ID to get the user then pass that, time will tell if we need a user or just the ID
+
 		ctx := context.WithValue(r.Context(), "userID", userID)
 		r = r.WithContext(ctx)
 

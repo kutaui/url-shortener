@@ -10,7 +10,7 @@ import (
 
 type Click struct {
 	ID        int64
-	UrlID     pgtype.Int8
+	UrlID     int64
 	CreatedAt pgtype.Timestamp
 }
 
@@ -20,7 +20,7 @@ type Url struct {
 	ShortUrl  string
 	Code      string
 	CreatedAt pgtype.Timestamp
-	UserID    pgtype.Int8
+	UserID    int64
 }
 
 type User struct {

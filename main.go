@@ -33,6 +33,7 @@ func main() {
 	router.HandleFunc("POST /link/create", utils.AuthMiddleware(handlers.CreateShortenedLink(q)))
 	router.HandleFunc("POST /register", handlers.Register(q))
 	router.HandleFunc("POST /login", handlers.Login(q))
+	router.HandleFunc("GET /{code}", handlers.Redirect(q))
 
 	router.HandleFunc("GET /ping", utils.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		userID := fmt.Sprintf("%v", r.Context().Value("userID"))

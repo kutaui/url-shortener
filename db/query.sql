@@ -13,7 +13,7 @@ WHERE
 INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id;
 
 
--- name: GetUserUrlsByUser :one
+-- name: GetUserUrls :one
 SELECT
     u.id,
     u.long_url,
@@ -23,6 +23,16 @@ FROM
     urls AS u
 WHERE
     u.user_id = $1 LIMIT 1;
+
+-- name: GetUserUrlByLongUrl :one
+SELECT
+    id,
+    long_url,
+    short_url
+FROM
+    urls
+WHERE
+    long_url = $1 AND user_id = $2 LIMIT 1;
 
 -- name: GetUrlById :one
 SELECT
@@ -35,10 +45,23 @@ FROM
 WHERE
     id = $1 LIMIT 1;
 
+-- name: GetUrlByCode :one
+SELECT
+    id,
+    long_url,
+    short_url,
+    created_at
+FROM
+    urls
+WHERE
+    code = $1 LIMIT 1;
+
+
+
 -- name: CreateUrl :one
 WITH new_url AS (
-    INSERT INTO urls (long_url, short_url, user_id)
-    VALUES ($1, $2, $3) RETURNING id
+    INSERT INTO urls (long_url, short_url, user_id, code)
+    VALUES ($1, $2, $3, $4) RETURNING id
 )
 SELECT id FROM new_url;
 
