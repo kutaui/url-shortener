@@ -186,6 +186,22 @@ func (q *Queries) GetUrlById(ctx context.Context, id int64) (GetUrlByIdRow, erro
 	return i, err
 }
 
+const getUrlIdByCode = `-- name: GetUrlIdByCode :one
+SELECT
+    id
+FROM
+    urls
+WHERE
+    code = $1 LIMIT 1
+`
+
+func (q *Queries) GetUrlIdByCode(ctx context.Context, code string) (int64, error) {
+	row := q.db.QueryRow(ctx, getUrlIdByCode, code)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT
     id,
