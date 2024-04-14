@@ -64,7 +64,7 @@ func (q *Queries) DeleteUrl(ctx context.Context, id int64) error {
 }
 
 const getClicksByUrlId = `-- name: GetClicksByUrlId :one
-SELECT COUNT(*) FROM clicks WHERE url_id = $1
+SELECT COUNT(*) FROM clicks WHERE url_id = $1 LIMIT 1
 `
 
 func (q *Queries) GetClicksByUrlId(ctx context.Context, urlID int64) (int64, error) {
@@ -74,23 +74,49 @@ func (q *Queries) GetClicksByUrlId(ctx context.Context, urlID int64) (int64, err
 	return count, err
 }
 
-const getClicksByUser = `-- name: GetClicksByUser :many
+const getClicksByUser = `-- name: GetClicksByUser :one
 SELECT COUNT(*) FROM clicks WHERE url_id IN (SELECT id FROM urls WHERE user_id = $1)
 `
 
-func (q *Queries) GetClicksByUser(ctx context.Context, userID int64) ([]int64, error) {
-	rows, err := q.db.Query(ctx, getClicksByUser, userID)
+func (q *Queries) GetClicksByUser(ctx context.Context, userID int64) (int64, error) {
+	row := q.db.QueryRow(ctx, getClicksByUser, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getClicksByUserGroupedByDate = `-- name: GetClicksByUserGroupedByDate :many
+SELECT
+  DATE(clicks.created_at) AS date,
+  COUNT(*)
+FROM
+  clicks
+WHERE
+  url_id IN (SELECT id FROM urls WHERE user_id = $1)
+GROUP BY
+  date
+ORDER BY
+  date ASC
+`
+
+type GetClicksByUserGroupedByDateRow struct {
+	Date  pgtype.Date
+	Count int64
+}
+
+func (q *Queries) GetClicksByUserGroupedByDate(ctx context.Context, userID int64) ([]GetClicksByUserGroupedByDateRow, error) {
+	rows, err := q.db.Query(ctx, getClicksByUserGroupedByDate, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []int64
+	var items []GetClicksByUserGroupedByDateRow
 	for rows.Next() {
-		var count int64
-		if err := rows.Scan(&count); err != nil {
+		var i GetClicksByUserGroupedByDateRow
+		if err := rows.Scan(&i.Date, &i.Count); err != nil {
 			return nil, err
 		}
-		items = append(items, count)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
