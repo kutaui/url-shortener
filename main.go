@@ -38,6 +38,7 @@ func main() {
 	router.HandleFunc("DELETE /link/delete", utils.AuthMiddleware(handlers.DeleteLink(q)))
 
 	router.HandleFunc("GET /analytics", utils.AuthMiddleware(handlers.GetLinkClicks(q)))
+	router.HandleFunc("GET /analytics/byDate", utils.AuthMiddleware(handlers.GetLinkClicksGroupedByDate(q)))
 
 	router.HandleFunc("POST /register", handlers.Register(q))
 	router.HandleFunc("POST /login", handlers.Login(q))

@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	db "github.com/kutaui/url-shortener/db/sqlc"
 	"github.com/kutaui/url-shortener/utils"
@@ -32,6 +33,10 @@ func Redirect(q *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(w, r, "http://"+url.LongUrl, http.StatusSeeOther)
+		urlStr := url.LongUrl
+		if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
+			urlStr = "http://" + urlStr
+		}
+		http.Redirect(w, r, urlStr, http.StatusSeeOther)
 	}
 }

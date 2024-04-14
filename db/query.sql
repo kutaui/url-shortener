@@ -72,10 +72,25 @@ DELETE FROM urls WHERE id = $1;
 
 
 -- name: GetClicksByUrlId :one
-SELECT COUNT(*) FROM clicks WHERE url_id = $1;
+SELECT COUNT(*) FROM clicks WHERE url_id = $1 LIMIT 1;
 
--- name: GetClicksByUser :many
+-- name: GetClicksByUser :one
 SELECT COUNT(*) FROM clicks WHERE url_id IN (SELECT id FROM urls WHERE user_id = $1);
+
+-- name: GetClicksByUserGroupedByDate :many
+SELECT
+  DATE(clicks.created_at) AS date,
+  COUNT(*)
+FROM
+  clicks
+WHERE
+  url_id IN (SELECT id FROM urls WHERE user_id = $1)
+GROUP BY
+  date
+ORDER BY
+  date ASC;
+
+
 
 -- name: RecordClick :exec
 INSERT INTO
