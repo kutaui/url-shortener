@@ -7,9 +7,10 @@ import (
 
 	db "github.com/kutaui/url-shortener/db/sqlc"
 	"github.com/kutaui/url-shortener/utils"
+	"github.com/redis/go-redis/v9"
 )
 
-func Redirect(q *db.Queries) http.HandlerFunc {
+func Redirect(q *db.Queries, rdb *redis.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		utils.EnableCORS(w, r)
 		code := r.PathValue("code")
