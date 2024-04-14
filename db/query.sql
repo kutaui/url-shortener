@@ -59,6 +59,14 @@ FROM
 WHERE
     code = $1 LIMIT 1;
 
+-- name: GetUrlIdByCode :one
+SELECT
+    id
+FROM
+    urls
+WHERE
+    code = $1 LIMIT 1;
+
 
 -- name: CreateUrl :one
 WITH new_url AS (
@@ -89,7 +97,6 @@ GROUP BY
   date
 ORDER BY
   date ASC;
-
 
 
 -- name: RecordClick :exec
