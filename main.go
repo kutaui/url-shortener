@@ -30,16 +30,18 @@ func main() {
 	q := db.New(conn)
 	router := http.NewServeMux()
 
+	// find a native way for authmiddleware or route grouping
+
+	router.HandleFunc("GET /link", utils.AuthMiddleware(handlers.GetLink(q)))
+	router.HandleFunc("GET /links", utils.AuthMiddleware(handlers.GetLinks(q)))
 	router.HandleFunc("POST /link/create", utils.AuthMiddleware(handlers.CreateShortenedLink(q)))
+	router.HandleFunc("DELETE /link/delete", utils.AuthMiddleware(handlers.DeleteLink(q)))
+
+	router.HandleFunc("GET /analytics", utils.AuthMiddleware(handlers.GetLinkClicks(q)))
+
 	router.HandleFunc("POST /register", handlers.Register(q))
 	router.HandleFunc("POST /login", handlers.Login(q))
 	router.HandleFunc("GET /{code}", handlers.Redirect(q))
-
-	router.HandleFunc("GET /ping", utils.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		userID := fmt.Sprintf("%v", r.Context().Value("userID"))
-		fmt.Fprintf(w, "pong, userID: %s", userID)
-
-	}))
 
 	server := &http.Server{
 		Addr:    ":8080",

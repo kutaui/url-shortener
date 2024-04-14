@@ -12,8 +12,11 @@ WHERE
 -- name: CreateUser :one
 INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id;
 
+-- name: UpdateUser :exec
+UPDATE users SET password = $1 WHERE id = $2;
 
--- name: GetUserUrls :one
+
+-- name: GetUserUrls :many
 SELECT
     u.id,
     u.long_url,
@@ -22,7 +25,7 @@ SELECT
 FROM
     urls AS u
 WHERE
-    u.user_id = $1 LIMIT 1;
+    u.user_id = $1;
 
 -- name: GetUserUrlByLongUrl :one
 SELECT
@@ -57,7 +60,6 @@ WHERE
     code = $1 LIMIT 1;
 
 
-
 -- name: CreateUrl :one
 WITH new_url AS (
     INSERT INTO urls (long_url, short_url, user_id, code)
@@ -65,10 +67,15 @@ WITH new_url AS (
 )
 SELECT id FROM new_url;
 
+-- name: DeleteUrl :exec
+DELETE FROM urls WHERE id = $1;
+
 
 -- name: GetClicksByUrlId :one
 SELECT COUNT(*) FROM clicks WHERE url_id = $1;
 
+-- name: GetClicksByUser :many
+SELECT COUNT(*) FROM clicks WHERE url_id IN (SELECT id FROM urls WHERE user_id = $1);
 
 -- name: RecordClick :exec
 INSERT INTO

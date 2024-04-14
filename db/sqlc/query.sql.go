@@ -54,6 +54,15 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, 
 	return id, err
 }
 
+const deleteUrl = `-- name: DeleteUrl :exec
+DELETE FROM urls WHERE id = $1
+`
+
+func (q *Queries) DeleteUrl(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, deleteUrl, id)
+	return err
+}
+
 const getClicksByUrlId = `-- name: GetClicksByUrlId :one
 SELECT COUNT(*) FROM clicks WHERE url_id = $1
 `
@@ -63,6 +72,30 @@ func (q *Queries) GetClicksByUrlId(ctx context.Context, urlID int64) (int64, err
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const getClicksByUser = `-- name: GetClicksByUser :many
+SELECT COUNT(*) FROM clicks WHERE url_id IN (SELECT id FROM urls WHERE user_id = $1)
+`
+
+func (q *Queries) GetClicksByUser(ctx context.Context, userID int64) ([]int64, error) {
+	rows, err := q.db.Query(ctx, getClicksByUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var count int64
+		if err := rows.Scan(&count); err != nil {
+			return nil, err
+		}
+		items = append(items, count)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getUrlByCode = `-- name: GetUrlByCode :one
@@ -180,7 +213,7 @@ func (q *Queries) GetUserUrlByLongUrl(ctx context.Context, arg GetUserUrlByLongU
 	return i, err
 }
 
-const getUserUrls = `-- name: GetUserUrls :one
+const getUserUrls = `-- name: GetUserUrls :many
 SELECT
     u.id,
     u.long_url,
@@ -189,7 +222,7 @@ SELECT
 FROM
     urls AS u
 WHERE
-    u.user_id = $1 LIMIT 1
+    u.user_id = $1
 `
 
 type GetUserUrlsRow struct {
@@ -199,16 +232,29 @@ type GetUserUrlsRow struct {
 	CreatedAt pgtype.Timestamp
 }
 
-func (q *Queries) GetUserUrls(ctx context.Context, userID int64) (GetUserUrlsRow, error) {
-	row := q.db.QueryRow(ctx, getUserUrls, userID)
-	var i GetUserUrlsRow
-	err := row.Scan(
-		&i.ID,
-		&i.LongUrl,
-		&i.ShortUrl,
-		&i.CreatedAt,
-	)
-	return i, err
+func (q *Queries) GetUserUrls(ctx context.Context, userID int64) ([]GetUserUrlsRow, error) {
+	rows, err := q.db.Query(ctx, getUserUrls, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserUrlsRow
+	for rows.Next() {
+		var i GetUserUrlsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.LongUrl,
+			&i.ShortUrl,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const recordClick = `-- name: RecordClick :exec
@@ -220,5 +266,19 @@ VALUES
 
 func (q *Queries) RecordClick(ctx context.Context, urlID int64) error {
 	_, err := q.db.Exec(ctx, recordClick, urlID)
+	return err
+}
+
+const updateUser = `-- name: UpdateUser :exec
+UPDATE users SET password = $1 WHERE id = $2
+`
+
+type UpdateUserParams struct {
+	Password string
+	ID       int64
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
+	_, err := q.db.Exec(ctx, updateUser, arg.Password, arg.ID)
 	return err
 }

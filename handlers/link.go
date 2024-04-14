@@ -1,21 +1,114 @@
 package handlers
 
 import (
-	rand "crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
-	random "math/rand"
+
 	"net/http"
-	"strings"
-	"time"
+	"strconv"
 
 	db "github.com/kutaui/url-shortener/db/sqlc"
+	"github.com/kutaui/url-shortener/utils"
 )
 
 type LinkRequest struct {
 	Link string `json:"link"`
+}
+
+type DeleteLinkRequest struct {
+	Id int64 `json:"id"`
+}
+
+func GetLinks(q *db.Queries) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := r.Context().Value("userID").(int64)
+		links, err := q.GetUserUrls(r.Context(), userID)
+		if err != nil {
+			http.Error(w, "Failed to get links", http.StatusInternalServerError)
+			return
+		}
+
+		linksJSON, err := json.Marshal(links)
+		if err != nil {
+			http.Error(w, "Failed to marshal links", http.StatusInternalServerError)
+			return
+		}
+
+		_, _ = w.Write(linksJSON)
+	}
+}
+
+func GetLink(q *db.Queries) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.URL.Query().Get("id")
+
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			http.Error(w, "Invalid ID", http.StatusBadRequest)
+			return
+		}
+
+		link, err := q.GetUrlById(r.Context(), id)
+		if err != nil {
+			if err.Error() == "no rows in result set" {
+				http.Error(w, "Link not found", http.StatusNotFound)
+				return
+			}
+			http.Error(w, "Failed to get link", http.StatusInternalServerError)
+			return
+		}
+
+		linkJSON, err := json.Marshal(link)
+		if err != nil {
+			http.Error(w, "Failed to marshal link", http.StatusInternalServerError)
+			return
+		}
+
+		_, _ = w.Write(linkJSON)
+	}
+}
+
+func DeleteLink(q *db.Queries) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.URL.Query().Get("id")
+
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			http.Error(w, "Invalid ID", http.StatusBadRequest)
+			return
+		}
+
+		_, err = q.GetUrlById(r.Context(), id)
+		if err != nil {
+			// maybe a better way to check if the URL doesn't exist ?
+			if err.Error() == "no rows in result set" {
+				http.Error(w, "Link not found", http.StatusNotFound)
+				return
+			}
+			http.Error(w, "Failed to get link", http.StatusInternalServerError)
+			return
+		}
+
+		err = q.DeleteUrl(r.Context(), id)
+		if err != nil {
+			http.Error(w, "Failed to delete link", http.StatusInternalServerError)
+			return
+		}
+
+		response := Response{
+			Status:  "ok",
+			Message: "Link deleted successfully",
+		}
+
+		responseJSON, err := json.Marshal(response)
+
+		if err != nil {
+			http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
+			return
+		}
+		_, _ = w.Write(responseJSON)
+	}
 }
 
 func CreateShortenedLink(q *db.Queries) http.HandlerFunc {
@@ -44,7 +137,7 @@ func CreateShortenedLink(q *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		code, err := generateUniqueBase62(q, r, 5)
+		code, err := utils.GenerateUniqueBase62(q, r, 5)
 		if err != nil {
 			http.Error(w, "Failed to generate unique code", http.StatusInternalServerError)
 			return
@@ -76,33 +169,4 @@ func CreateShortenedLink(q *db.Queries) http.HandlerFunc {
 		}
 		_, _ = w.Write(responseJSON)
 	}
-}
-
-func generateUniqueBase62(q *db.Queries, r *http.Request, length int) (string, error) {
-	// to scale this up we also need to handle the case where every 5 character code is taken, find a way to programmatically increase the length or find a different way to generate unique codes
-
-	var code string
-	for {
-		code = generateBase62(length)
-		_, err := q.GetUrlByCode(r.Context(), code)
-		if err != nil {
-			break
-		}
-	}
-	return code, nil
-}
-
-const base62Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-
-func generateBase62(length int) string {
-	b := make([]byte, length)
-	if _, err := io.ReadFull(rand.Reader, b); err != nil {
-		log.Fatal(err)
-	}
-	random.NewSource(time.Now().UnixNano())
-	var result strings.Builder
-	for i := 0; i < length; i++ {
-		result.WriteByte(base62Chars[random.Intn(62)])
-	}
-	return result.String()
 }
