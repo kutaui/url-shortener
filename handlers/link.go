@@ -13,7 +13,8 @@ import (
 )
 
 type LinkRequest struct {
-	Link string `json:"link"`
+	Link       string `json:"link"`
+	CustomCode string `json:"customCode"`
 }
 
 type DeleteLinkRequest struct {
@@ -23,6 +24,7 @@ type DeleteLinkRequest struct {
 func GetLinks(q *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Context().Value("userID").(int64)
+
 		links, err := q.GetUserUrls(r.Context(), userID)
 		if err != nil {
 			http.Error(w, "Failed to get links", http.StatusInternalServerError)
@@ -137,17 +139,23 @@ func CreateShortenedLink(q *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		code, err := utils.GenerateUniqueBase62(q, r, 5)
-		if err != nil {
-			http.Error(w, "Failed to generate unique code", http.StatusInternalServerError)
-			return
+		var code string
+
+		if linkReq.CustomCode != "" {
+			code = linkReq.CustomCode
+		} else {
+
+			code, err = utils.GenerateUniqueBase62(q, r, 5)
+			if err != nil {
+				http.Error(w, "Failed to generate unique code", http.StatusInternalServerError)
+				return
+			}
 		}
 
 		_, err = q.CreateUrl(r.Context(), db.CreateUrlParams{
-			Code:     code,
-			LongUrl:  linkReq.Link,
-			ShortUrl: r.Host + "/" + code,
-			UserID:   userID,
+			Code:    code,
+			LongUrl: linkReq.Link,
+			UserID:  userID,
 		})
 
 		if err != nil {

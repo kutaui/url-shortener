@@ -20,7 +20,6 @@ UPDATE users SET password = $1 WHERE id = $2;
 SELECT
     u.id,
     u.long_url,
-    u.short_url,
     u.created_at
 FROM
     urls AS u
@@ -30,8 +29,7 @@ WHERE
 -- name: GetUserUrlByLongUrl :one
 SELECT
     id,
-    long_url,
-    short_url
+    long_url
 FROM
     urls
 WHERE
@@ -41,7 +39,6 @@ WHERE
 SELECT
     id,
     long_url,
-    short_url,
     created_at
 FROM
     urls
@@ -52,7 +49,6 @@ WHERE
 SELECT
     id,
     long_url,
-    short_url,
     created_at
 FROM
     urls
@@ -70,8 +66,8 @@ WHERE
 
 -- name: CreateUrl :one
 WITH new_url AS (
-    INSERT INTO urls (long_url, short_url, user_id, code)
-    VALUES ($1, $2, $3, $4) RETURNING id
+    INSERT INTO urls (long_url,  user_id, code)
+    VALUES ($1, $2, $3) RETURNING id
 )
 SELECT id FROM new_url;
 
