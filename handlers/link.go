@@ -142,9 +142,18 @@ func CreateShortenedLink(q *db.Queries) http.HandlerFunc {
 		var code string
 
 		if linkReq.CustomCode != "" {
+			if len(linkReq.CustomCode) > 16 {
+				http.Error(w, "Maximum length for custom code is 16", http.StatusBadRequest)
+				return
+			}
+
+			_, err = q.GetUrlByCode(r.Context(), linkReq.CustomCode)
+			if err == nil {
+				http.Error(w, "Custom code already exists", http.StatusBadRequest)
+				return
+			}
 			code = linkReq.CustomCode
 		} else {
-
 			code, err = utils.GenerateUniqueBase62(q, r, 5)
 			if err != nil {
 				http.Error(w, "Failed to generate unique code", http.StatusInternalServerError)
