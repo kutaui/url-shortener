@@ -13,26 +13,20 @@ import (
 
 const createUrl = `-- name: CreateUrl :one
 WITH new_url AS (
-    INSERT INTO urls (long_url, short_url, user_id, code)
-    VALUES ($1, $2, $3, $4) RETURNING id
+    INSERT INTO urls (long_url,  user_id, code)
+    VALUES ($1, $2, $3) RETURNING id
 )
 SELECT id FROM new_url
 `
 
 type CreateUrlParams struct {
-	LongUrl  string
-	ShortUrl string
-	UserID   int64
-	Code     string
+	LongUrl string
+	UserID  int64
+	Code    string
 }
 
 func (q *Queries) CreateUrl(ctx context.Context, arg CreateUrlParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createUrl,
-		arg.LongUrl,
-		arg.ShortUrl,
-		arg.UserID,
-		arg.Code,
-	)
+	row := q.db.QueryRow(ctx, createUrl, arg.LongUrl, arg.UserID, arg.Code)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
@@ -128,7 +122,6 @@ const getUrlByCode = `-- name: GetUrlByCode :one
 SELECT
     id,
     long_url,
-    short_url,
     created_at
 FROM
     urls
@@ -139,19 +132,13 @@ WHERE
 type GetUrlByCodeRow struct {
 	ID        int64
 	LongUrl   string
-	ShortUrl  string
 	CreatedAt pgtype.Timestamp
 }
 
 func (q *Queries) GetUrlByCode(ctx context.Context, code string) (GetUrlByCodeRow, error) {
 	row := q.db.QueryRow(ctx, getUrlByCode, code)
 	var i GetUrlByCodeRow
-	err := row.Scan(
-		&i.ID,
-		&i.LongUrl,
-		&i.ShortUrl,
-		&i.CreatedAt,
-	)
+	err := row.Scan(&i.ID, &i.LongUrl, &i.CreatedAt)
 	return i, err
 }
 
@@ -159,7 +146,6 @@ const getUrlById = `-- name: GetUrlById :one
 SELECT
     id,
     long_url,
-    short_url,
     created_at
 FROM
     urls
@@ -170,19 +156,13 @@ WHERE
 type GetUrlByIdRow struct {
 	ID        int64
 	LongUrl   string
-	ShortUrl  string
 	CreatedAt pgtype.Timestamp
 }
 
 func (q *Queries) GetUrlById(ctx context.Context, id int64) (GetUrlByIdRow, error) {
 	row := q.db.QueryRow(ctx, getUrlById, id)
 	var i GetUrlByIdRow
-	err := row.Scan(
-		&i.ID,
-		&i.LongUrl,
-		&i.ShortUrl,
-		&i.CreatedAt,
-	)
+	err := row.Scan(&i.ID, &i.LongUrl, &i.CreatedAt)
 	return i, err
 }
 
@@ -229,8 +209,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 const getUserUrlByLongUrl = `-- name: GetUserUrlByLongUrl :one
 SELECT
     id,
-    long_url,
-    short_url
+    long_url
 FROM
     urls
 WHERE
@@ -243,15 +222,14 @@ type GetUserUrlByLongUrlParams struct {
 }
 
 type GetUserUrlByLongUrlRow struct {
-	ID       int64
-	LongUrl  string
-	ShortUrl string
+	ID      int64
+	LongUrl string
 }
 
 func (q *Queries) GetUserUrlByLongUrl(ctx context.Context, arg GetUserUrlByLongUrlParams) (GetUserUrlByLongUrlRow, error) {
 	row := q.db.QueryRow(ctx, getUserUrlByLongUrl, arg.LongUrl, arg.UserID)
 	var i GetUserUrlByLongUrlRow
-	err := row.Scan(&i.ID, &i.LongUrl, &i.ShortUrl)
+	err := row.Scan(&i.ID, &i.LongUrl)
 	return i, err
 }
 
@@ -259,7 +237,6 @@ const getUserUrls = `-- name: GetUserUrls :many
 SELECT
     u.id,
     u.long_url,
-    u.short_url,
     u.created_at
 FROM
     urls AS u
@@ -270,7 +247,6 @@ WHERE
 type GetUserUrlsRow struct {
 	ID        int64
 	LongUrl   string
-	ShortUrl  string
 	CreatedAt pgtype.Timestamp
 }
 
@@ -283,12 +259,7 @@ func (q *Queries) GetUserUrls(ctx context.Context, userID int64) ([]GetUserUrlsR
 	var items []GetUserUrlsRow
 	for rows.Next() {
 		var i GetUserUrlsRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.LongUrl,
-			&i.ShortUrl,
-			&i.CreatedAt,
-		); err != nil {
+		if err := rows.Scan(&i.ID, &i.LongUrl, &i.CreatedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
