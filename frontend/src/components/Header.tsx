@@ -26,7 +26,7 @@ export default function Header() {
 	return (
 		<>
 			<section
-				className="hidden justify-between items-center w-[80%] mx-auto md:flex "
+				className="hidden justify-between items-center w-[80%] mx-auto md:flex pb-6 "
 				aria-label="Navigation Container"
 			>
 				<Image
@@ -38,7 +38,7 @@ export default function Header() {
 				<NavigationMenu>
 					<NavigationMenuList>
 						<NavigationMenuItem>
-							<Link href="/" passHref>
+							<Link href="/" legacyBehavior passHref>
 								<NavigationMenuLink
 									className={cn(
 										navigationMenuTriggerStyle(),
@@ -50,7 +50,7 @@ export default function Header() {
 							</Link>
 						</NavigationMenuItem>
 						<NavigationMenuItem>
-							<Link href="/pricing" passHref>
+							<Link href="/pricing" legacyBehavior passHref>
 								<NavigationMenuLink
 									className={cn(
 										navigationMenuTriggerStyle(),
@@ -64,7 +64,7 @@ export default function Header() {
 							</Link>
 						</NavigationMenuItem>
 						<NavigationMenuItem>
-							<Link href="/docs" passHref>
+							<Link href="/docs" legacyBehavior passHref>
 								<NavigationMenuLink
 									className={cn(
 										navigationMenuTriggerStyle(),
@@ -91,6 +91,7 @@ export default function Header() {
 				</div>
 			</section>
 			{/* MOBILE NAVIGATION */}
+			<hr />
 		</>
 	)
 }
