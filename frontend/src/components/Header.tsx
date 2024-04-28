@@ -13,6 +13,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { Button } from './ui/button'
+import { Meteors } from './ui/meteors'
 
 export default function Header() {
 	const [isOpen, setIsOpen] = useState(false)
@@ -31,7 +32,7 @@ export default function Header() {
 			>
 				<Image
 					src="/logo-no-background.svg"
-					alt="Logo"
+					alt="Logo with an icon of link chain and text 'Shortie'"
 					width={130}
 					height={130}
 				/>
