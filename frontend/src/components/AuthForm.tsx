@@ -1,64 +1,70 @@
-import Link from 'next/link'
-
-import { Button } from '@/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+'use client'
+import React from 'react'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 
-export function AuthForm() {
+export function AuthForm({ login }: { login?: boolean }) {
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+		console.log('Form submitted')
+	}
+
 	return (
-		<Card className="mx-auto max-w-sm">
-			<CardHeader>
-				<CardTitle className="text-xl">Sign Up</CardTitle>
-				<CardDescription>
-					Enter your information to create an account
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<div className="grid gap-4">
-					<div className="grid grid-cols-2 gap-4">
-						<div className="grid gap-2">
-							<Label htmlFor="first-name">First name</Label>
-							<Input id="first-name" placeholder="Max" required />
-						</div>
-						<div className="grid gap-2">
-							<Label htmlFor="last-name">Last name</Label>
-							<Input id="last-name" placeholder="Robinson" required />
-						</div>
-					</div>
-					<div className="grid gap-2">
-						<Label htmlFor="email">Email</Label>
-						<Input
-							id="email"
-							type="email"
-							placeholder="m@example.com"
-							required
-						/>
-					</div>
-					<div className="grid gap-2">
-						<Label htmlFor="password">Password</Label>
-						<Input id="password" type="password" />
-					</div>
-					<Button type="submit" className="w-full">
-						Create an account
-					</Button>
-					<Button variant="outline" className="w-full">
-						Sign up with GitHub
-					</Button>
-				</div>
-				<div className="mt-4 text-center text-sm">
-					Already have an account?{' '}
-					<Link href="#" className="underline">
-						Sign in
-					</Link>
-				</div>
-			</CardContent>
-		</Card>
+		<div className="max-w-md w-full mx-auto rounded-none md:rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-black">
+			<h2 className="font-bold text-xl text-neutral-800 dark:text-neutral-200">
+				{login ? 'Welcome Back' : 'Welcome to Shortie'}
+			</h2>
+			<p className="text-neutral-600 text-sm max-w-sm mt-2 dark:text-neutral-300">
+				{login ? 'Sign in to your account' : 'Sign up to get started'}
+			</p>
+
+			<form className="my-8" onSubmit={handleSubmit}>
+				<LabelInputContainer className={`mb-4 ${login ? 'hidden' : 'block'}`}>
+					<Label htmlFor="firstname">Name</Label>
+					<Input id="firstname" placeholder="Jotaro Kujo" type="text" />
+				</LabelInputContainer>
+
+				<LabelInputContainer className="mb-4">
+					<Label htmlFor="email">Email Address</Label>
+					<Input id="email" placeholder="hi@kutaybekleric.com" type="email" />
+				</LabelInputContainer>
+				<LabelInputContainer className="mb-4">
+					<Label htmlFor="password">Password</Label>
+					<Input id="password" placeholder="••••••••" type="password" />
+				</LabelInputContainer>
+
+				<button
+					className="bg-primary relative group/btn block  w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+					type="submit"
+				>
+					{login ? 'Sign in' : 'Sign up'}
+					<BottomGradient />
+				</button>
+			</form>
+		</div>
+	)
+}
+
+const BottomGradient = () => {
+	return (
+		<>
+			<span className="group-hover/btn:opacity-100 block transition duration-500 opacity-0 absolute h-px w-full -bottom-px inset-x-0 bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
+			<span className="group-hover/btn:opacity-100 blur-sm block transition duration-500 opacity-0 absolute h-px w-1/2 mx-auto -bottom-px inset-x-10 bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
+		</>
+	)
+}
+
+const LabelInputContainer = ({
+	children,
+	className,
+}: {
+	children: React.ReactNode
+	className?: string
+}) => {
+	return (
+		<div className={cn('flex flex-col space-y-2 w-full', className)}>
+			{children}
+		</div>
 	)
 }
