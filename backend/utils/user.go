@@ -60,7 +60,6 @@ func CheckPasswordHash(password, hash string) bool {
 
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		EnableCORS(w, r)
 
 		cookie, err := r.Cookie("token")
 		if err != nil {

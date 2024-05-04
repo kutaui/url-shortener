@@ -1,13 +1,51 @@
 'use client'
-import React from 'react'
+import React, { useContext } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import { useMutation } from '@tanstack/react-query'
+import { LoginRequest } from '@/controllers/UserController'
+import { useToast } from './ui/use-toast'
+import { useRouter } from 'next/navigation'
+import { deleteCookie, getCookie, setCookie } from 'cookies-next'
+import { AuthContext } from './Providers'
 
 export function AuthForm({ login }: { login?: boolean }) {
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const { toast } = useToast()
+	const router = useRouter()
+	const { setUser,user } = useContext(AuthContext)
+	const loginMutation = useMutation({
+		mutationFn: LoginRequest,
+		onSuccess: (response) => {
+			toast({
+				title: 'Success',
+				description: 'Logged in successfully',
+				variant: 'success',
+			})
+			setCookie('USER', JSON.stringify(response.data.user))
+			setUser(response.data.user)
+		//	router.push('/dashboard')
+		},
+		onError: (error) => {
+			const errorMessage = error.response.data || 'Something went wrong'
+			toast({
+				title: 'Error',
+				description: errorMessage,
+				variant: 'destructive',
+			})
+		},
+	})
+
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		console.log('Form submitted')
+
+		const formData = new FormData(e.target)
+		const email = formData.get('email') as string
+		const password = formData.get('password') as string
+
+		const userLoginData: UserLoginType = { email, password }
+		loginMutation.mutate(userLoginData)
 	}
 
 	return (
@@ -22,16 +60,31 @@ export function AuthForm({ login }: { login?: boolean }) {
 			<form className="my-8" onSubmit={handleSubmit}>
 				<LabelInputContainer className={`mb-4 ${login ? 'hidden' : 'block'}`}>
 					<Label htmlFor="firstname">Name</Label>
-					<Input id="firstname" placeholder="Jotaro Kujo" type="text" />
+					<Input
+						name="firstname"
+						id="firstname"
+						placeholder="Jotaro Kujo"
+						type="text"
+					/>
 				</LabelInputContainer>
 
 				<LabelInputContainer className="mb-4">
 					<Label htmlFor="email">Email Address</Label>
-					<Input id="email" placeholder="hi@kutaybekleric.com" type="email" />
+					<Input
+						name="email"
+						id="email"
+						placeholder="hi@kutaybekleric.com"
+						type="email"
+					/>
 				</LabelInputContainer>
 				<LabelInputContainer className="mb-4">
 					<Label htmlFor="password">Password</Label>
-					<Input id="password" placeholder="••••••••" type="password" />
+					<Input
+						name="password"
+						id="password"
+						placeholder="••••••••"
+						type="password"
+					/>
 				</LabelInputContainer>
 
 				<button
@@ -42,6 +95,27 @@ export function AuthForm({ login }: { login?: boolean }) {
 					<BottomGradient />
 				</button>
 			</form>
+			{login ? (
+				<p>
+					Don't have an Account ?
+					<Link
+						href="/register"
+						className="text-primary font-semibold underline ml-1"
+					>
+						Sign Up
+					</Link>
+				</p>
+			) : (
+				<p>
+					Have an Account ?
+					<Link
+						href="/login"
+						className="text-primary font-semibold underline ml-1"
+					>
+						Sign In
+					</Link>
+				</p>
+			)}
 		</div>
 	)
 }

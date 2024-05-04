@@ -25,6 +25,7 @@ type Url struct {
 type User struct {
 	ID        int64
 	Email     string
+	Name      string
 	Password  string
 	CreatedAt pgtype.Timestamp
 }

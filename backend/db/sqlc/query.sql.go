@@ -33,19 +33,32 @@ func (q *Queries) CreateUrl(ctx context.Context, arg CreateUrlParams) (int64, er
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id
+INSERT INTO users (name,email, password) VALUES ($1, $2,$3) RETURNING id,name,email,password
 `
 
 type CreateUserParams struct {
+	Name     string
 	Email    string
 	Password string
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.Password)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+type CreateUserRow struct {
+	ID       int64
+	Name     string
+	Email    string
+	Password string
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
+	row := q.db.QueryRow(ctx, createUser, arg.Name, arg.Email, arg.Password)
+	var i CreateUserRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+	)
+	return i, err
 }
 
 const deleteUrl = `-- name: DeleteUrl :exec
@@ -185,6 +198,7 @@ func (q *Queries) GetUrlIdByCode(ctx context.Context, code string) (int64, error
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT
     id,
+    name,
     email,
     password,
     created_at
@@ -194,11 +208,20 @@ WHERE
     email = $1 LIMIT 1
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+type GetUserByEmailRow struct {
+	ID        int64
+	Name      string
+	Email     string
+	Password  string
+	CreatedAt pgtype.Timestamp
+}
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
 	row := q.db.QueryRow(ctx, getUserByEmail, email)
-	var i User
+	var i GetUserByEmailRow
 	err := row.Scan(
 		&i.ID,
+		&i.Name,
 		&i.Email,
 		&i.Password,
 		&i.CreatedAt,
@@ -282,16 +305,16 @@ func (q *Queries) RecordClick(ctx context.Context, urlID int64) error {
 	return err
 }
 
-const updateUser = `-- name: UpdateUser :exec
+const updateUserPassword = `-- name: UpdateUserPassword :exec
 UPDATE users SET password = $1 WHERE id = $2
 `
 
-type UpdateUserParams struct {
+type UpdateUserPasswordParams struct {
 	Password string
 	ID       int64
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
-	_, err := q.db.Exec(ctx, updateUser, arg.Password, arg.ID)
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.Exec(ctx, updateUserPassword, arg.Password, arg.ID)
 	return err
 }
