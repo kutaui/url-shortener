@@ -11,12 +11,13 @@ import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useContext, useState } from 'react'
+import { AuthContext } from './Providers'
 import { Button } from './ui/button'
-import { Meteors } from './ui/meteors'
 
 export default function Header() {
 	const [isOpen, setIsOpen] = useState(false)
+	const { user } = useContext(AuthContext)
 
 	const pathname = usePathname()
 
@@ -81,14 +82,24 @@ export default function Header() {
 					</NavigationMenuList>
 				</NavigationMenu>
 				<div className="flex justify-between gap-2">
-					<Link href="/login" passHref>
-						<Button variant="outline" className="border-primary">
-							Login
-						</Button>
-					</Link>
-					<Link href="/register" passHref>
-						<Button>Register</Button>
-					</Link>
+					{!user ? (
+						<>
+							<Link href="/login" passHref>
+								<Button variant="outline" className="border-primary">
+									Login
+								</Button>
+							</Link>
+							<Link href="/register" passHref>
+								<Button>Register</Button>
+							</Link>
+						</>
+					) : (
+						<Link href="/dashboard" passHref>
+							<Button variant="outline" className="border-primary">
+								Dashboard
+							</Button>
+						</Link>
+					)}
 				</div>
 			</section>
 			{/* MOBILE NAVIGATION */}

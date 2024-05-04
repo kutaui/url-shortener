@@ -1,6 +1,7 @@
 -- name: GetUserByEmail :one
 SELECT
     id,
+    name,
     email,
     password,
     created_at
@@ -10,9 +11,9 @@ WHERE
     email = $1 LIMIT 1;
 
 -- name: CreateUser :one
-INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id;
+INSERT INTO users (name,email, password) VALUES ($1, $2,$3) RETURNING id,name,email,password;
 
--- name: UpdateUser :exec
+-- name: UpdateUserPassword :exec
 UPDATE users SET password = $1 WHERE id = $2;
 
 

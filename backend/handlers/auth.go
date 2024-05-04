@@ -6,24 +6,32 @@ import (
 	"io"
 	"net/http"
 	"net/mail"
+	"os"
 
 	db "github.com/kutaui/url-shortener/db/sqlc"
 	"github.com/kutaui/url-shortener/utils"
 )
 
+type UserResponse struct {
+	ID    int64  `json:"id"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
+}
+
 type Response struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
+	Status  string       `json:"status"`
+	User    UserResponse `json:"user,omitempty"`
+	Message string       `json:"message"`
 }
 
 type AuthRequest struct {
+	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 func Register(q *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		utils.EnableCORS(w, r)
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -58,23 +66,29 @@ func Register(q *db.Queries) http.HandlerFunc {
 
 		AuthRequest.Password = string(hashedPassword)
 
-		var userId int64
-		userId, err = q.CreateUser(r.Context(), db.CreateUserParams{Email: AuthRequest.Email, Password: AuthRequest.Password})
+		var user db.CreateUserRow
+		user, err = q.CreateUser(r.Context(), db.CreateUserParams{Name: AuthRequest.Name, Email: AuthRequest.Email, Password: AuthRequest.Password})
 		if err != nil {
 			http.Error(w, "Failed to create user", http.StatusInternalServerError)
 			fmt.Println(err)
 			return
 		}
 
-		token, err := utils.GenerateJWT(userId)
+		token, err := utils.GenerateJWT(user.ID)
 		if err != nil {
 			http.Error(w, "Failed to generate JWT", http.StatusInternalServerError)
 			return
 		}
 
+		userResponse := UserResponse{
+			ID:    user.ID,
+			Email: user.Email,
+			Name:  user.Name,
+		}
+
 		response := Response{
-			Status:  "ok",
-			Message: "User created successfully",
+			Status: "ok",
+			User:   userResponse,
 		}
 		responseJSON, err := json.Marshal(response)
 		if err != nil {
@@ -87,8 +101,8 @@ func Register(q *db.Queries) http.HandlerFunc {
 			Value:    token,
 			Path:     "/",
 			MaxAge:   3600,
-			HttpOnly: false,
-			Secure:   true,
+			HttpOnly: true,
+			Secure:   os.Getenv("ENV") == "production",
 			SameSite: http.SameSiteNoneMode,
 		}
 
@@ -99,7 +113,6 @@ func Register(q *db.Queries) http.HandlerFunc {
 
 func Login(q *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		utils.EnableCORS(w, r)
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -120,7 +133,7 @@ func Login(q *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		var user db.User
+		var user db.GetUserByEmailRow
 		user, err = q.GetUserByEmail(r.Context(), AuthRequest.Email)
 		if err != nil {
 			http.Error(w, "User not found", http.StatusNotFound)
@@ -138,9 +151,15 @@ func Login(q *db.Queries) http.HandlerFunc {
 			return
 		}
 
+		userResponse := UserResponse{
+			ID:    user.ID,
+			Email: user.Email,
+			Name:  user.Name,
+		}
+
 		response := Response{
-			Status:  "ok",
-			Message: "Login successful",
+			Status: "ok",
+			User:   userResponse,
 		}
 
 		responseJSON, err := json.Marshal(response)

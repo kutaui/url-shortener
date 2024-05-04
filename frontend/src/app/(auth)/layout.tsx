@@ -30,14 +30,9 @@ export default function RootLayout({
 	children: React.ReactNode
 }>) {
 	return (
-		<html lang="en">
-			<body>
-				<Providers>
-					{children}
-					<Toaster />
-				</Providers>
-			</body>
-			<Script src="https://scripts.simpleanalyticscdn.com/latest.js" />
-		</html>
+		<>
+			<Header />
+			{children}
+		</>
 	)
 }
