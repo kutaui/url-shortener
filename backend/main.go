@@ -12,7 +12,6 @@ import (
 	db "github.com/kutaui/url-shortener/db/sqlc"
 	"github.com/kutaui/url-shortener/handlers"
 	"github.com/kutaui/url-shortener/utils"
-	"github.com/redis/go-redis/v9"
 )
 
 var ctx = context.Background()
@@ -31,13 +30,13 @@ func main() {
 	q := db.New(conn)
 	router := http.NewServeMux()
 
-	opts, err := redis.ParseURL(os.Getenv("REDIS_URL"))
+/* 	opts, err := redis.ParseURL(os.Getenv("REDIS_URL"))
 	if err != nil {
 		panic(err)
 	}
 
 	rdb := redis.NewClient(opts)
-
+ */
 	// find a native way for authmiddleware or route grouping
 
 	router.HandleFunc("GET /link", utils.AuthMiddleware(handlers.GetLink(q)))
@@ -50,7 +49,7 @@ func main() {
 
 	router.HandleFunc("POST /register", handlers.Register(q))
 	router.HandleFunc("POST /login", handlers.Login(q))
-	router.HandleFunc("GET /{code}", handlers.Redirect(q, rdb))
+	//router.HandleFunc("GET /{code}", handlers.Redirect(q, rdb))
 
 	server := &http.Server{
 		Addr:    ":8080",
