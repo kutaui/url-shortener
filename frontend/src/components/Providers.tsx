@@ -17,13 +17,9 @@ axios.defaults.withCredentials = true
 export const AuthContext = createContext<{
 	user: User | null
 	setUser: React.Dispatch<React.SetStateAction<User | null>>
-	sidebarCollapsed: boolean
-	setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>
 }>({
 	user: null,
 	setUser: () => null,
-	sidebarCollapsed: false,
-	setSidebarCollapsed: () => null,
 })
 
 const queryClient = new QueryClient()
@@ -40,10 +36,7 @@ export default function Providers({
 		password: '',
 	})
 
-	const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
-	//maybe save the sidebar state in localstorage but im lazy
-	
 	useLayoutEffect(() => {
 		const storedUser = getCookie('USER')
 		const userInCookie = storedUser ? JSON.parse(storedUser) : null
@@ -60,8 +53,6 @@ export default function Providers({
 				value={{
 					user: user,
 					setUser: setUser,
-					sidebarCollapsed,
-					setSidebarCollapsed,
 				}}
 			>
 				{children}
