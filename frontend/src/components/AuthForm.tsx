@@ -1,20 +1,20 @@
 'use client'
-import React, { useContext } from 'react'
-import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { LoginRequest, RegisterRequest } from '@/controllers/UserController'
 import { cn } from '@/lib/utils'
-import Link from 'next/link'
 import { useMutation } from '@tanstack/react-query'
-import { LoginRequest } from '@/controllers/UserController'
-import { useToast } from './ui/use-toast'
+import { setCookie } from 'cookies-next'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { deleteCookie, getCookie, setCookie } from 'cookies-next'
+import React, { useContext } from 'react'
 import { AuthContext } from './Providers'
+import { useToast } from './ui/use-toast'
 
 export function AuthForm({ login }: { login?: boolean }) {
 	const { toast } = useToast()
 	const router = useRouter()
-	const { setUser,user } = useContext(AuthContext)
+	const { setUser, user } = useContext(AuthContext)
 	const loginMutation = useMutation({
 		mutationFn: LoginRequest,
 		onSuccess: (response) => {
@@ -25,7 +25,28 @@ export function AuthForm({ login }: { login?: boolean }) {
 			})
 			setCookie('USER', JSON.stringify(response.data.user))
 			setUser(response.data.user)
-		//	router.push('/dashboard')
+			//	router.push('/dashboard')
+		},
+		onError: (error) => {
+			const errorMessage = error.response.data || 'Something went wrong'
+			toast({
+				title: 'Error',
+				description: errorMessage,
+				variant: 'destructive',
+			})
+		},
+	})
+	const registerMutation = useMutation({
+		mutationFn: RegisterRequest,
+		onSuccess: (response) => {
+			toast({
+				title: 'Success',
+				description: 'Registered successfully',
+				variant: 'success',
+			})
+			setCookie('USER', JSON.stringify(response.data.user))
+			setUser(response.data.user)
+			//	router.push('/dashboard')
 		},
 		onError: (error) => {
 			const errorMessage = error.response.data || 'Something went wrong'
@@ -37,7 +58,7 @@ export function AuthForm({ login }: { login?: boolean }) {
 		},
 	})
 
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 
 		const formData = new FormData(e.target)
@@ -46,6 +67,18 @@ export function AuthForm({ login }: { login?: boolean }) {
 
 		const userLoginData: UserLoginType = { email, password }
 		loginMutation.mutate(userLoginData)
+	}
+
+	const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+
+		const formData = new FormData(e.target)
+		const name = formData.get('name') as string
+		const email = formData.get('email') as string
+		const password = formData.get('password') as string
+
+		const userRegisterData: UserRegisterType = { name, email, password }
+		registerMutation.mutate(userRegisterData)
 	}
 
 	return (
@@ -57,7 +90,7 @@ export function AuthForm({ login }: { login?: boolean }) {
 				{login ? 'Sign in to your account' : 'Sign up to get started'}
 			</p>
 
-			<form className="my-8" onSubmit={handleSubmit}>
+			<form className="my-8" onSubmit={login ? handleLogin : handleRegister}>
 				<LabelInputContainer className={`mb-4 ${login ? 'hidden' : 'block'}`}>
 					<Label htmlFor="firstname">Name</Label>
 					<Input

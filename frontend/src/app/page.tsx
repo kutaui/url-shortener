@@ -9,7 +9,7 @@ import Image from 'next/image'
 
 export default function Home() {
 	return (
-		<section className="mt-6 max-w-[1280px] mx-auto">
+		<section className="max-w-[1280px] mx-auto">
 			<Header />
 			<main className="flex justify-center items-center px-6 flex-col md:flex-row">
 				<section className="flex flex-col gap-4 md:mt-32 flex-1 relative overflow-hidden">

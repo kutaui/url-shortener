@@ -1,13 +1,16 @@
 import DashboardLayout from '@/components/DashboardLayout'
+import { cookies } from 'next/headers'
 
 export default function Layout({
 	children,
 }: Readonly<{
 	children: React.ReactNode
 }>) {
+
 	return (
-		<section className="flex  ">
-			<DashboardLayout>{children}</DashboardLayout>
-		</section>
+		<DashboardLayout
+		>
+			{children}
+		</DashboardLayout>
 	)
 }

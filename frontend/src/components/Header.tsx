@@ -28,7 +28,7 @@ export default function Header() {
 	return (
 		<>
 			<section
-				className="hidden justify-between items-center w-[80%] mx-auto md:flex pb-6 "
+				className="hidden mt-6  justify-between items-center w-[80%] mx-auto md:flex pb-6 "
 				aria-label="Navigation Container"
 			>
 				<Image
