@@ -22,8 +22,6 @@ func Redirect(q *db.Queries, rdb *redis.Client) http.HandlerFunc {
 		urlStr, err := rdb.Get(r.Context(), code).Result()
 		if err != nil && err != redis.Nil {
 			fmt.Println(err)
-			http.Error(w, "Failed to get URL from Redis", http.StatusInternalServerError)
-			return
 		}
 
 		var url db.GetUrlByCodeRow
@@ -73,13 +71,12 @@ func Redirect(q *db.Queries, rdb *redis.Client) http.HandlerFunc {
 		err = q.RecordClick(r.Context(), url.ID)
 		if err != nil {
 			fmt.Println(err)
-			http.Error(w, "Failed to record click", http.StatusInternalServerError)
-			return
 		}
 
 		if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
 			urlStr = "http://" + urlStr
 		}
+		NotifyLinkClicked(q, url.ID, code)
 
 		http.Redirect(w, r, urlStr, http.StatusSeeOther)
 	}

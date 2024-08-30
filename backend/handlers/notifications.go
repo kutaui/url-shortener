@@ -132,7 +132,7 @@ func NotifyLinkClicked(q *db.Queries, linkID int64, code string) {
 	}
 
 	for _, client := range clients {
-		if client.userID == link.user_id {
+		if client.userID == link.UserID {
 			select {
 			case client.events <- event:
 			default:

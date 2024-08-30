@@ -40,7 +40,8 @@ WHERE
 SELECT
     id,
     long_url,
-    created_at
+    created_at,
+    user_id
 FROM
     urls
 WHERE
@@ -101,3 +102,37 @@ INSERT INTO
     clicks (url_id)
 VALUES
     ($1);
+
+
+-- name: GetMostClickedUrls :many
+SELECT 
+    u.id,
+    u.long_url,
+    u.code,
+    COUNT(c.id) as click_count
+FROM 
+    urls u
+JOIN 
+    clicks c ON u.id = c.url_id
+WHERE 
+    u.user_id = $1
+GROUP BY 
+    u.id
+ORDER BY 
+    click_count DESC
+LIMIT 5;
+
+-- name: GetClicksByUserGroupedByMonth :many
+SELECT
+    DATE_TRUNC('month', clicks.created_at)::timestamp AS month,
+    COUNT(*) as click_count
+FROM
+    clicks
+JOIN
+    urls ON clicks.url_id = urls.id
+WHERE
+    urls.user_id = $1
+GROUP BY
+    month
+ORDER BY
+    month ASC;

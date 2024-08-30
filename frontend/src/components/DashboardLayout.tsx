@@ -122,7 +122,7 @@ export default function DashboardLayout({
 					>
 						<div
 							className={cn(
-								"flex h-[52px] items-center justify-center m-1 ",
+								"flex h-[52px] items-center justify-center m-1",
 								isCollapsed ? "h-[52px]" : "px-2"
 							)}
 						>
@@ -141,8 +141,8 @@ export default function DashboardLayout({
 								{
 									title: "My Links",
 									icon: LinkIcon,
-									variant: pathname === "/dashboard/links" ? "default" : "ghost",
-									href: "/dashboard/links"
+									variant: pathname === "/dashboard/mylinks" ? "default" : "ghost",
+									href: "/dashboard/mylinks"
 								},
 								{
 									title: "Campaigns",

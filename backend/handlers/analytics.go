@@ -8,44 +8,102 @@ import (
 	db "github.com/kutaui/url-shortener/db/sqlc"
 )
 
-func GetLinkClicks(q *db.Queries) http.HandlerFunc {
+type ClickCountByMonth struct {
+	Month      string `json:"month"`
+	ClickCount int64  `json:"clickCount"`
+}
+
+type MostClickedUrl struct {
+	ID         int64  `json:"id"`
+	LongUrl    string `json:"longUrl"`
+	Code       string `json:"code"`
+	ClickCount int64  `json:"clickCount"`
+}
+
+func GetMostClickedUrls(q *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Context().Value("userID").(int64)
 
-		clicks, err := q.GetClicksByUser(r.Context(), userID)
+		urls, err := q.GetMostClickedUrls(r.Context(), userID)
 		if err != nil {
-			http.Error(w, "Failed to get clicks", http.StatusInternalServerError)
+			fmt.Println("Error in GetMostClickedUrls:", err)
+			http.Error(w, "Failed to get most clicked URLs", http.StatusInternalServerError)
 			return
 		}
 
-		response := map[string]int64{"totalClicks": clicks}
+		// Map the data to the camelCase struct
+		var response []MostClickedUrl
+		for _, url := range urls {
+			response = append(response, MostClickedUrl{
+				ID:         url.ID,
+				LongUrl:    url.LongUrl,
+				Code:       url.Code,
+				ClickCount: url.ClickCount,
+			})
+		}
+
 		responseJSON, err := json.Marshal(response)
 		if err != nil {
-			http.Error(w, "Failed to marshal clicks", http.StatusInternalServerError)
+			http.Error(w, "Failed to marshal URLs", http.StatusInternalServerError)
 			return
 		}
 
-		_, _ = w.Write(responseJSON)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(responseJSON)
 	}
 }
 
-func GetLinkClicksGroupedByDate(q *db.Queries) http.HandlerFunc {
+func GetClicksGroupedByMonth(q *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Context().Value("userID").(int64)
 
-		clickCounts, err := q.GetClicksByUserGroupedByDate(r.Context(), userID)
+		clickCounts, err := q.GetClicksByUserGroupedByMonth(r.Context(), userID)
 		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Failed to get clicks", http.StatusInternalServerError)
+			fmt.Println("Error in GetClicksByUserGroupedByMonth:", err)
+			http.Error(w, "Failed to get clicks grouped by month", http.StatusInternalServerError)
 			return
 		}
 
-		responseJSON, err := json.Marshal(clickCounts)
+		var formattedClickCounts []ClickCountByMonth
+		for _, cc := range clickCounts {
+			monthTime := cc.Month.Time
+
+			formattedClickCounts = append(formattedClickCounts, ClickCountByMonth{
+				Month:      monthTime.Format("2006-01"),
+				ClickCount: cc.ClickCount,
+			})
+		}
+
+		responseJSON, err := json.Marshal(formattedClickCounts)
 		if err != nil {
-			http.Error(w, "Failed to marshal clicks", http.StatusInternalServerError)
+			http.Error(w, "Failed to marshal click counts", http.StatusInternalServerError)
 			return
 		}
 
-		_, _ = w.Write(responseJSON)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(responseJSON)
+	}
+}
+
+func GetTotalClicks(q *db.Queries) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := r.Context().Value("userID").(int64)
+
+		totalClicks, err := q.GetClicksByUser(r.Context(), userID)
+		if err != nil {
+			fmt.Println("Error in GetClicksByUser:", err)
+			http.Error(w, "Failed to get total clicks", http.StatusInternalServerError)
+			return
+		}
+
+		response := map[string]int64{"totalClicks": totalClicks}
+		responseJSON, err := json.Marshal(response)
+		if err != nil {
+			http.Error(w, "Failed to marshal total clicks", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(responseJSON)
 	}
 }

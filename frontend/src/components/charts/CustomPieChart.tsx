@@ -18,50 +18,40 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 287, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 190, fill: "var(--color-other)" },
-]
 
-const chartConfig = {
-  visitors: {
-    label: "Visitors",
-  },
-  chrome: {
-    label: "Chrome",
-    color: "red",
-  },
-  safari: {
-    label: "Safari",
-    color: "blue",
-  },
-  firefox: {
-    label: "Firefox",
-    color: "yellow",
-  },
-  edge: {
-    label: "Edge",
-    color: "orange",
-  },
-  other: {
-    label: "Other",
-    color: "hsl(var(--chart-5))",
-  },
-} satisfies ChartConfig
 
-export function CustomPieChart() {
-  const totalVisitors = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.visitors, 0)
-  }, [])
+
+
+export function CustomPieChart({ data }: { data: MostClickedLinks[] | undefined }) {
+  const colors = ["red", "blue", "yellow", "orange", "purple"]
+
+  const chartData = data?.map((link, index) => ({
+    link: link.code,
+    clicks: link.clickCount,
+    fill: colors[index]
+  }));
+
+  const chartConfigData = data?.reduce((acc, link) => {
+    acc[link.Code] = {
+      label: link.code,
+    };
+    return acc;
+  }, {});
+
+  const chartConfig = {
+    ...chartConfigData,
+  } satisfies ChartConfig;
+
+
+
+  const totalClicks = chartData?.reduce((acc, curr) => acc + curr.clicks, 0);
+
 
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
         <CardTitle>Most Clicked Links</CardTitle>
-        <CardDescription>June - December 2024</CardDescription>
+        <CardDescription>All Time</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -75,8 +65,8 @@ export function CustomPieChart() {
             />
             <Pie
               data={chartData}
-              dataKey="visitors"
-              nameKey="browser"
+              dataKey="clicks"
+              nameKey="link"
               innerRadius={60}
               strokeWidth={5}
             >
@@ -95,7 +85,7 @@ export function CustomPieChart() {
                           y={viewBox.cy}
                           className="fill-foreground text-3xl font-bold"
                         >
-                          {totalVisitors.toLocaleString()}
+                          {totalClicks}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
@@ -115,10 +105,7 @@ export function CustomPieChart() {
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
         <div className="flex items-center gap-2 font-medium leading-none">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
+          Showing your 5 most clicked links of all time
         </div>
       </CardFooter>
     </Card>

@@ -1,8 +1,5 @@
-import type { Metadata } from 'next'
-import { Toaster } from '@/components/ui/toaster'
 import Header from '@/components/Header'
-import Providers from '@/components/Providers'
-import Script from 'next/script'
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
 	title: 'Shortie',

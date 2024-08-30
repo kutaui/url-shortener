@@ -184,6 +184,9 @@ func CreateShortenedLink(q *db.Queries) http.HandlerFunc {
 			http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
 			return
 		}
+
+		fmt.Printf("Link created successfully. Code: %s, LongUrl: %s, UserID: %d\n", code, linkReq.Link, userID)
+
 		_, _ = w.Write(responseJSON)
 	}
 }

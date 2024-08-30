@@ -3,21 +3,19 @@ import { CustomBarChart } from '@/components/charts/CustomBarChart';
 import { CustomPieChart } from '@/components/charts/CustomPieChart';
 import { CustomRadialChart } from '@/components/charts/CustomRadialChart';
 import { Sortable } from '@/components/dnd/Sortable';
+import { GetClicksGroupedByMonthQuery, GetMostClickedUrlsQuery, GetTotalClicksQuery } from '@/controllers/AnalyticsController';
 import { closestCenter, DndContext } from '@dnd-kit/core';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const initialCharts = [
-	{ id: 'chart-1', content: <CustomPieChart /> },
-	{ id: 'chart-2', content: <CustomBarChart /> },
-	{ id: 'chart-3', content: <CustomRadialChart /> },
-	{ id: 'chart-4', content: <CustomRadialChart /> },
-	{ id: 'chart-5', content: <CustomBarChart /> },
-];
 
 
 export default function Page() {
-	const [charts, setCharts] = useState(initialCharts);
+	const { data: mostClicked, isLoading: mostIsLoading } = GetMostClickedUrlsQuery()
+	const { data: clicksByMonth, isLoading: monthIsLoading } = GetClicksGroupedByMonthQuery()
+	const { data: totalClicks, isLoading: totalIsLoading } = GetTotalClicksQuery()
+
+	const [charts, setCharts] = useState<any[]>([]);
 
 	function handleDragEnd(event) {
 		const { active, over } = event;
@@ -31,18 +29,32 @@ export default function Page() {
 		}
 	}
 
+	useEffect(() => {
+		if (!mostIsLoading && !monthIsLoading && !totalIsLoading) {
+			setCharts([
+				{ id: 'most-clicked', content: <CustomPieChart data={mostClicked} /> },
+				{ id: 'clicks-by-month', content: <CustomBarChart data={clicksByMonth} /> },
+				{ id: 'total-clicks', content: <CustomRadialChart data={totalClicks} /> },
+			]);
+		}
+	}, [mostClicked, clicksByMonth, totalClicks, mostIsLoading, monthIsLoading, totalIsLoading]);
+
+
 	return (
 		<DndContext
 			collisionDetection={closestCenter}
 			onDragEnd={handleDragEnd}
 		>
 			<SortableContext items={charts}>
-				<main className="grid grid-cols-3 gap-4 p-20">
-					{charts.map(chart => (
-						<Sortable key={chart.id} id={chart.id} className=''>
-							{chart.content}
-						</Sortable>
-					))}
+				<main className='p-20'>
+					<h1 className='text-5xl font-bold pb-10'>Dashboard</h1>
+					<section className="grid grid-cols-3 gap-4 ">
+						{charts.map(chart => (
+							<Sortable key={chart.id} id={chart.id} className=''>
+								{chart.content}
+							</Sortable>
+						))}
+					</section>
 				</main>
 			</SortableContext>
 		</DndContext>

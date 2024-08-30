@@ -141,7 +141,7 @@ func Login(q *db.Queries) http.HandlerFunc {
 		}
 
 		if !utils.CheckPasswordHash(AuthRequest.Password, user.Password) {
-			http.Error(w, "Invalid password", http.StatusUnauthorized)
+			http.Error(w, "Invalid Credentials", http.StatusUnauthorized)
 			return
 		}
 

@@ -10,11 +10,14 @@ import { useRouter } from 'next/navigation'
 import React, { useContext } from 'react'
 import { AuthContext } from './Providers'
 import { useToast } from './ui/use-toast'
+import { useForm } from 'react-hook-form'
 
 export function AuthForm({ login }: { login?: boolean }) {
 	const { toast } = useToast()
 	const router = useRouter()
 	const { setUser, user } = useContext(AuthContext)
+	const { register, handleSubmit, formState: { errors } } = useForm()
+
 	const loginMutation = useMutation({
 		mutationFn: LoginRequest,
 		onSuccess: (response) => {
@@ -28,7 +31,7 @@ export function AuthForm({ login }: { login?: boolean }) {
 			//	router.push('/dashboard')
 		},
 		onError: (error) => {
-			const errorMessage = error.response.data || 'Something went wrong'
+			const errorMessage = error.response.data || error.message || "Something Went Wrong"
 			toast({
 				title: 'Error',
 				description: errorMessage,
@@ -36,6 +39,7 @@ export function AuthForm({ login }: { login?: boolean }) {
 			})
 		},
 	})
+
 	const registerMutation = useMutation({
 		mutationFn: RegisterRequest,
 		onSuccess: (response) => {
@@ -49,7 +53,7 @@ export function AuthForm({ login }: { login?: boolean }) {
 			//	router.push('/dashboard')
 		},
 		onError: (error) => {
-			const errorMessage = error.response.data || 'Something went wrong'
+			const errorMessage = error.response.data || error.message || "Something Went Wrong"
 			toast({
 				title: 'Error',
 				description: errorMessage,
@@ -58,26 +62,13 @@ export function AuthForm({ login }: { login?: boolean }) {
 		},
 	})
 
-	const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
-
-		const formData = new FormData(e.target)
-		const email = formData.get('email') as string
-		const password = formData.get('password') as string
-
-		const userLoginData: UserLoginType = { email, password }
+	const handleLogin = async (data: any) => {
+		const userLoginData: UserLoginType = { email: data.email, password: data.password }
 		loginMutation.mutate(userLoginData)
 	}
 
-	const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
-
-		const formData = new FormData(e.target)
-		const name = formData.get('name') as string
-		const email = formData.get('email') as string
-		const password = formData.get('password') as string
-
-		const userRegisterData: UserRegisterType = { name, email, password }
+	const handleRegister = async (data: any) => {
+		const userRegisterData: UserRegisterType = { name: data.name, email: data.email, password: data.password }
 		registerMutation.mutate(userRegisterData)
 	}
 
@@ -90,44 +81,63 @@ export function AuthForm({ login }: { login?: boolean }) {
 				{login ? 'Sign in to your account' : 'Sign up to get started'}
 			</p>
 
-			<form className="my-8" onSubmit={login ? handleLogin : handleRegister}>
-				<LabelInputContainer className={`mb-4 ${login ? 'hidden' : 'block'}`}>
-					<Label htmlFor="firstname">Name</Label>
-					<Input
-						name="firstname"
-						id="firstname"
-						placeholder="Jotaro Kujo"
-						type="text"
-					/>
-				</LabelInputContainer>
+			<form className="my-8" onSubmit={handleSubmit(login ? handleLogin : handleRegister)}>
+				{!login && (
+					<LabelInputContainer className="mb-4">
+						<Label htmlFor="name">Name</Label>
+						<Input
+							id="name"
+							placeholder="Jotaro Kujo"
+							type="text"
+							{...register('name', { required: 'Name is required' })}
+						/>
+						{errors.name && <p className="text-red-500 text-sm">{String(errors.name.message)}</p>}
+					</LabelInputContainer>
+				)}
 
 				<LabelInputContainer className="mb-4">
 					<Label htmlFor="email">Email Address</Label>
 					<Input
-						name="email"
 						id="email"
 						placeholder="hi@kutaybekleric.com"
 						type="email"
+						{...register('email', {
+							required: 'Email is required',
+							pattern: {
+								value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+								message: 'Invalid email address',
+							},
+						})}
 					/>
+					{errors.email && <p className="text-red-500 text-sm">{String(errors.email.message)}</p>}
 				</LabelInputContainer>
+
 				<LabelInputContainer className="mb-4">
 					<Label htmlFor="password">Password</Label>
 					<Input
-						name="password"
 						id="password"
 						placeholder="••••••••"
 						type="password"
+						{...register('password', {
+							required: 'Password is required',
+							minLength: {
+								value: 6,
+								message: 'Password must be at least 6 characters',
+							},
+						})}
 					/>
+					{errors.password && <p className="text-red-500 text-sm">{String(errors.password.message)}</p>}
 				</LabelInputContainer>
 
 				<button
-					className="bg-primary relative group/btn block  w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+					className="bg-primary relative group/btn block w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
 					type="submit"
 				>
 					{login ? 'Sign in' : 'Sign up'}
 					<BottomGradient />
 				</button>
 			</form>
+
 			{login ? (
 				<p>
 					Don't have an Account ?
