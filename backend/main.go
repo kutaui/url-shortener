@@ -20,6 +20,16 @@ var ctx = context.Background()
 func main() {
 	godotenv.Load()
 
+	env := os.Getenv("URL_SHORTENER_ENV")
+	if env == "" {
+		env = "development"
+	}
+	log.Printf("Using environment: %s", env)
+
+	godotenv.Load(".env." + env)
+
+	godotenv.Load()
+
 	dbpool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
