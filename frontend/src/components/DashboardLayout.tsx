@@ -9,6 +9,8 @@ import { Archive, ArchiveX, Inbox, LucideIcon, Send, Users, File, LayoutDashboar
 import { Separator } from './ui/separator'
 import { AuthContext } from './Providers'
 import { usePathname } from 'next/navigation'
+import { useToast } from './ui/use-toast'
+import { useSSE } from '@/controllers/SSEhandler'
 
 interface NavProps {
 	isCollapsed: boolean
@@ -23,6 +25,19 @@ interface NavProps {
 
 
 export function Nav({ links, isCollapsed }: NavProps) {
+	const { toast } = useToast()
+	useSSE('http://127.0.0.1:8080/api/link-clicked-events', (data) => {
+		if (data.connected) {
+			console.log('Connected to SSE stream');
+		} else {
+			console.log('Link clicked:', data);
+			toast({
+				title: 'Link Clicked',
+				description: ` Your link with the code: ${data.code} has been clicked.`,
+				variant: 'success',
+			})
+		}
+	});
 	return (
 		<div
 			data-collapsed={isCollapsed}

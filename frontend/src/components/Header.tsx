@@ -31,12 +31,14 @@ export default function Header() {
 				className="hidden mt-6  justify-between items-center w-[80%] mx-auto md:flex pb-6 "
 				aria-label="Navigation Container"
 			>
-				<Image
-					src="/logo-no-background.svg"
-					alt="Logo with an icon of link chain and text 'Shortie'"
-					width={130}
-					height={130}
-				/>
+				<Link href="/">
+					<Image
+						src="/logo-no-background.svg"
+						alt="Logo with an icon of link chain and text 'Shortie'"
+						width={130}
+						height={130}
+					/>
+				</Link>
 				<NavigationMenu>
 					<NavigationMenuList>
 						<NavigationMenuItem>

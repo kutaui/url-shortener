@@ -18,21 +18,23 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
-const chartData = [
-  { browser: "safari", visitors: 254440, fill: "var(--color-safari)" },
-]
+const colors = ["red", "blue", "yellow", "orange", "purple"]
 
-const chartConfig = {
-  visitors: {
-    label: "Visitors",
-  },
-  safari: {
-    label: "Safari",
-    color: "red",
-  },
-} satisfies ChartConfig
+export function CustomRadialChart({ data }: { data: { totalClicks: number } | undefined }) {
+  const chartData = [{
+    browser: "Total Clicks",
+    visitors: data?.totalClicks,
+    fill: colors[0]
+  }];
 
-export function CustomRadialChart() {
+  const chartConfig: ChartConfig = {
+    totalClicks: {
+      label: "Total Clicks",
+    },
+  };
+
+  const totalClicks = data?.totalClicks;
+
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
@@ -75,7 +77,7 @@ export function CustomRadialChart() {
                           y={viewBox.cy}
                           className="fill-foreground text-4xl font-bold"
                         >
-                          {chartData[0].visitors.toLocaleString()}
+                          {totalClicks?.toString()}
                         </tspan>
                         <tspan
                           x={viewBox.cx}

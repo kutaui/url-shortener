@@ -28,10 +28,10 @@ export function AuthForm({ login }: { login?: boolean }) {
 			})
 			setCookie('USER', JSON.stringify(response.data.user))
 			setUser(response.data.user)
-			//	router.push('/dashboard')
+			router.replace('/dashboard')
 		},
-		onError: (error) => {
-			const errorMessage = error.response.data || error.message || "Something Went Wrong"
+		onError: (error: any) => {
+			const errorMessage = error.response?.data || error.message || "Something Went Wrong"
 			toast({
 				title: 'Error',
 				description: errorMessage,
@@ -50,10 +50,10 @@ export function AuthForm({ login }: { login?: boolean }) {
 			})
 			setCookie('USER', JSON.stringify(response.data.user))
 			setUser(response.data.user)
-			//	router.push('/dashboard')
+			router.replace('/dashboard')
 		},
-		onError: (error) => {
-			const errorMessage = error.response.data || error.message || "Something Went Wrong"
+		onError: (error: any) => {
+			const errorMessage = error.response?.data || error.message || "Something Went Wrong"
 			toast({
 				title: 'Error',
 				description: errorMessage,

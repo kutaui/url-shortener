@@ -25,14 +25,19 @@ import {
 export function CustomPieChart({ data }: { data: MostClickedLinks[] | undefined }) {
   const colors = ["red", "blue", "yellow", "orange", "purple"]
 
-  const chartData = data?.map((link, index) => ({
+  const chartData = (data?.map((link, index) => ({
     link: link.code,
     clicks: link.clickCount,
-    fill: colors[index]
-  }));
+    fill: colors[index % colors.length]
+  })) || []);
+
+  // Ensure chartData has at least one entry
+  if (chartData.length === 0) {
+    chartData.push({ link: 'No Data', clicks: 0.01, fill: 'gray' });
+  }
 
   const chartConfigData = data?.reduce((acc, link) => {
-    acc[link.Code] = {
+    acc[link.code] = {
       label: link.code,
     };
     return acc;
@@ -42,10 +47,7 @@ export function CustomPieChart({ data }: { data: MostClickedLinks[] | undefined 
     ...chartConfigData,
   } satisfies ChartConfig;
 
-
-
-  const totalClicks = chartData?.reduce((acc, curr) => acc + curr.clicks, 0);
-
+  const totalClicks = chartData.reduce((acc, curr) => acc + curr.clicks, 0);
 
   return (
     <Card className="flex flex-col">
@@ -68,6 +70,8 @@ export function CustomPieChart({ data }: { data: MostClickedLinks[] | undefined 
               dataKey="clicks"
               nameKey="link"
               innerRadius={60}
+              outerRadius={80}
+              fill="#8884d8"
               strokeWidth={5}
             >
               <Label
@@ -85,7 +89,7 @@ export function CustomPieChart({ data }: { data: MostClickedLinks[] | undefined 
                           y={viewBox.cy}
                           className="fill-foreground text-3xl font-bold"
                         >
-                          {totalClicks}
+                          {totalClicks === 0.01 ? 0 : totalClicks}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
@@ -105,7 +109,7 @@ export function CustomPieChart({ data }: { data: MostClickedLinks[] | undefined 
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
         <div className="flex items-center gap-2 font-medium leading-none">
-          Showing your 5 most clicked links of all time
+          Showing your 5 most clicked links
         </div>
       </CardFooter>
     </Card>

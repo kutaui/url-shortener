@@ -8,8 +8,6 @@ import { closestCenter, DndContext } from '@dnd-kit/core';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 import { useEffect, useState } from 'react';
 
-
-
 export default function Page() {
 	const { data: mostClicked, isLoading: mostIsLoading } = GetMostClickedUrlsQuery()
 	const { data: clicksByMonth, isLoading: monthIsLoading } = GetClicksGroupedByMonthQuery()
@@ -24,21 +22,31 @@ export default function Page() {
 			setCharts((items) => {
 				const oldIndex = items.findIndex(item => item.id === active.id);
 				const newIndex = items.findIndex(item => item.id === over.id);
-				return arrayMove(items, oldIndex, newIndex);
+				const newItems = arrayMove(items, oldIndex, newIndex);
+				localStorage.setItem('chartsOrder', JSON.stringify(newItems.map(item => item.id)));
+				return newItems;
 			});
 		}
 	}
 
 	useEffect(() => {
 		if (!mostIsLoading && !monthIsLoading && !totalIsLoading) {
-			setCharts([
+			const defaultCharts = [
 				{ id: 'most-clicked', content: <CustomPieChart data={mostClicked} /> },
 				{ id: 'clicks-by-month', content: <CustomBarChart data={clicksByMonth} /> },
 				{ id: 'total-clicks', content: <CustomRadialChart data={totalClicks} /> },
-			]);
+			];
+
+			const savedOrder = localStorage.getItem('chartsOrder');
+			if (savedOrder) {
+				const order = JSON.parse(savedOrder);
+				const orderedCharts = order.map(id => defaultCharts.find(chart => chart.id === id));
+				setCharts(orderedCharts);
+			} else {
+				setCharts(defaultCharts);
+			}
 		}
 	}, [mostClicked, clicksByMonth, totalClicks, mostIsLoading, monthIsLoading, totalIsLoading]);
-
 
 	return (
 		<DndContext

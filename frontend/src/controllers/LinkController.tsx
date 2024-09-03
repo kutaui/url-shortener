@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 
-export const GetLinksByUserRequest = () => axios.get(`/account/login`)
+export const GetLinksByUserRequest = (): Promise<Link[]> => axios.get(`/links`).then(response => response.data)
 
 export const GetLinksByUserQuery = () =>
 	useQuery({
@@ -9,7 +9,7 @@ export const GetLinksByUserQuery = () =>
 		queryFn: () => GetLinksByUserRequest(),
 	})
 
-export const GetLinkByIdRequest = (id: string) => axios.get(`/account/login`)
+export const GetLinkByIdRequest = (id: string): Promise<Link> => axios.get(`/account/login`).then(response => response.data)
 
 export const GetLinkByIdQuery = (id: string) =>
 	useQuery({
@@ -17,7 +17,7 @@ export const GetLinkByIdQuery = (id: string) =>
 		queryFn: () => GetLinkByIdRequest(id),
 	})
 
-export const DeleteLink = (id: string) => axios.delete(`/account/login`)
+export const DeleteLink = (id: number) => axios.delete(`/link/delete?id=${id}`)
 
-export const CreateLink = (form: LinkPostType) =>
-	axios.post(`/account/login`, form)
+export const CreateLinkRequest = (form: LinkPostType) =>
+	axios.post(`/link/create`, form)

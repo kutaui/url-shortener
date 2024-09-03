@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	db "github.com/kutaui/url-shortener/db/sqlc"
 )
@@ -57,6 +58,7 @@ func GetClicksGroupedByMonth(q *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Context().Value("userID").(int64)
 
+		currentYear := time.Now().Year()
 		clickCounts, err := q.GetClicksByUserGroupedByMonth(r.Context(), userID)
 		if err != nil {
 			fmt.Println("Error in GetClicksByUserGroupedByMonth:", err)
@@ -67,11 +69,12 @@ func GetClicksGroupedByMonth(q *db.Queries) http.HandlerFunc {
 		var formattedClickCounts []ClickCountByMonth
 		for _, cc := range clickCounts {
 			monthTime := cc.Month.Time
-
-			formattedClickCounts = append(formattedClickCounts, ClickCountByMonth{
-				Month:      monthTime.Format("2006-01"),
-				ClickCount: cc.ClickCount,
-			})
+			if monthTime.Year() == currentYear {
+				formattedClickCounts = append(formattedClickCounts, ClickCountByMonth{
+					Month:      monthTime.Format("2006-01"),
+					ClickCount: cc.ClickCount,
+				})
+			}
 		}
 
 		responseJSON, err := json.Marshal(formattedClickCounts)

@@ -1,6 +1,6 @@
 
 # Example user template
-.DS_Store
+
 # IntelliJ project files
 .idea
 *.iml
@@ -28,6 +28,7 @@ tmp
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
+.DS_Store
 # Go workspace file
 go.work
 

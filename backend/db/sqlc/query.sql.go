@@ -359,17 +359,25 @@ const getUserUrls = `-- name: GetUserUrls :many
 SELECT
     u.id,
     u.long_url,
-    u.created_at
+    u.created_at,
+    u.code,
+    COUNT(c.id) as click_count
 FROM
     urls AS u
+LEFT JOIN
+    clicks AS c ON u.id = c.url_id
 WHERE
     u.user_id = $1
+GROUP BY
+    u.id
 `
 
 type GetUserUrlsRow struct {
-	ID        int64
-	LongUrl   string
-	CreatedAt pgtype.Timestamp
+	ID         int64
+	LongUrl    string
+	CreatedAt  pgtype.Timestamp
+	Code       string
+	ClickCount int64
 }
 
 func (q *Queries) GetUserUrls(ctx context.Context, userID int64) ([]GetUserUrlsRow, error) {
@@ -381,7 +389,13 @@ func (q *Queries) GetUserUrls(ctx context.Context, userID int64) ([]GetUserUrlsR
 	var items []GetUserUrlsRow
 	for rows.Next() {
 		var i GetUserUrlsRow
-		if err := rows.Scan(&i.ID, &i.LongUrl, &i.CreatedAt); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.LongUrl,
+			&i.CreatedAt,
+			&i.Code,
+			&i.ClickCount,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

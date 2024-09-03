@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -36,7 +37,19 @@ const (
 
 func LinkClickedNotification(q *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := r.Context().Value("userID").(int64)
+		userIDValue := r.Context().Value("userID")
+		if userIDValue == nil {
+			log.Println("userID not found in context")
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		userID, ok := userIDValue.(int64)
+		if !ok {
+			log.Printf("userID has unexpected type: %T", userIDValue)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
 
 		clientsMux.Lock()
 		clientID := nextID
@@ -52,7 +65,7 @@ func LinkClickedNotification(q *db.Queries) http.HandlerFunc {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", os.Getenv("FRONTEND_URL"))
 
 		flusher, ok := w.(http.Flusher)
 		if !ok {
@@ -67,7 +80,6 @@ func LinkClickedNotification(q *db.Queries) http.HandlerFunc {
 			close(client.events)
 		}()
 
-		// Send an initial message to confirm the connection
 		fmt.Fprintf(w, "data: {\"connected\": true}\n\n")
 		flusher.Flush()
 
@@ -75,6 +87,7 @@ func LinkClickedNotification(q *db.Queries) http.HandlerFunc {
 			select {
 			case event, ok := <-client.events:
 				if !ok {
+					log.Printf("Client %d's channel is closed", client.id)
 					return
 				}
 				if err := writeEvent(w, flusher, event); err != nil {
@@ -84,7 +97,6 @@ func LinkClickedNotification(q *db.Queries) http.HandlerFunc {
 			case <-r.Context().Done():
 				return
 			case <-time.After(30 * time.Second):
-				// Send a keep-alive message every 30 seconds
 				fmt.Fprintf(w, ": keep-alive\n\n")
 				flusher.Flush()
 			}

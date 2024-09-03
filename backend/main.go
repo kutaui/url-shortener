@@ -38,22 +38,26 @@ func main() {
 
 	rdb := redis.NewClient(opts)
 
-	// find a native way for authmiddleware or route grouping
+	// Group routes with middleware
+	authRoutes := map[string]http.HandlerFunc{
+		"GET /link":                     handlers.GetLink(q),
+		"GET /links":                    handlers.GetLinks(q),
+		"POST /link/create":             handlers.CreateShortenedLink(q),
+		"DELETE /link/delete":           handlers.DeleteLink(q),
+		"GET /analytics/mostClicked":    handlers.GetMostClickedUrls(q),
+		"GET /analytics/clickedByMonth": handlers.GetClicksGroupedByMonth(q),
+		"GET /analytics/totalClicks":    handlers.GetTotalClicks(q),
+		"/api/link-clicked-events":      handlers.LinkClickedNotification(q),
+	}
 
-	router.HandleFunc("GET /link", utils.AuthMiddleware(handlers.GetLink(q)))
-	router.HandleFunc("GET /links", utils.AuthMiddleware(handlers.GetLinks(q)))
-	router.HandleFunc("POST /link/create", utils.AuthMiddleware(handlers.CreateShortenedLink(q)))
-	router.HandleFunc("DELETE /link/delete", utils.AuthMiddleware(handlers.DeleteLink(q)))
+	for route, handler := range authRoutes {
+		router.HandleFunc(route, utils.AuthMiddleware(handler))
+	}
 
-	router.HandleFunc("GET /analytics/mostClicked", utils.AuthMiddleware(handlers.GetMostClickedUrls(q)))
-	router.HandleFunc("GET /analytics/clickedByMonth", utils.AuthMiddleware(handlers.GetClicksGroupedByMonth(q)))
-	router.HandleFunc("GET /analytics/totalClicks", utils.AuthMiddleware(handlers.GetTotalClicks(q)))
-
+	// Non-auth routes
 	router.HandleFunc("POST /register", handlers.Register(q))
 	router.HandleFunc("POST /login", handlers.Login(q))
 	router.HandleFunc("GET /{code}", handlers.Redirect(q, rdb))
-
-	router.HandleFunc("/api/link-clicked-events", utils.AuthMiddleware(handlers.LinkClickedNotification(q)))
 
 	server := &http.Server{
 		Addr:    ":8080",

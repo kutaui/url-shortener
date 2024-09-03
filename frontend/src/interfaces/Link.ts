@@ -5,10 +5,10 @@ interface LinkPostType {
 
 interface Link {
   id: number;
-  link: string;
+  longUrl: string;
   code: string;
-  userId?: number;
-  created_at: string;
+  createdAt: string;
+  clickCount: number
 }
 
 interface MostClickedLinks {

@@ -60,7 +60,6 @@ func CheckPasswordHash(password, hash string) bool {
 
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		cookie, err := r.Cookie("token")
 		if err != nil {
 			http.Error(w, "Missing or invalid token", http.StatusUnauthorized)
@@ -73,11 +72,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		// maybe we can query the database with the ID to get the user then pass that, time will tell if we need a user or just the ID
-
 		ctx := context.WithValue(r.Context(), "userID", userID)
-		r = r.WithContext(ctx)
-
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }

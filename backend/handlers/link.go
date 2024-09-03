@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"time"
 
 	"net/http"
 	"strconv"
@@ -21,17 +22,37 @@ type DeleteLinkRequest struct {
 	Id int64 `json:"id"`
 }
 
+type LinkResponse struct {
+	ID         int64  `json:"id"`
+	LongUrl    string `json:"longUrl"`
+	CreatedAt  string `json:"createdAt"`
+	Code       string `json:"code"`
+	ClickCount int64  `json:"clickCount"`
+}
+
 func GetLinks(q *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Context().Value("userID").(int64)
 
 		links, err := q.GetUserUrls(r.Context(), userID)
 		if err != nil {
+			fmt.Println(err)
 			http.Error(w, "Failed to get links", http.StatusInternalServerError)
 			return
 		}
 
-		linksJSON, err := json.Marshal(links)
+		var linkResponses []LinkResponse
+		for _, link := range links {
+			linkResponses = append(linkResponses, LinkResponse{
+				ID:         link.ID,
+				LongUrl:    link.LongUrl,
+				CreatedAt:  link.CreatedAt.Time.Format(time.RFC3339),
+				Code:       link.Code,
+				ClickCount: link.ClickCount,
+			})
+		}
+
+		linksJSON, err := json.Marshal(linkResponses)
 		if err != nil {
 			http.Error(w, "Failed to marshal links", http.StatusInternalServerError)
 			return
@@ -129,12 +150,13 @@ func CreateShortenedLink(q *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		_, err = q.GetUserUrlByLongUrl(r.Context(), db.GetUserUrlByLongUrlParams{
+		asd, err := q.GetUserUrlByLongUrl(r.Context(), db.GetUserUrlByLongUrlParams{
 			LongUrl: linkReq.Link,
 			UserID:  userID,
 		})
 
 		if err == nil {
+			fmt.Println(asd)
 			http.Error(w, "Link already exists", http.StatusBadRequest)
 			return
 		}

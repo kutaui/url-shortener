@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/mail"
-	"os"
 
 	db "github.com/kutaui/url-shortener/db/sqlc"
 	"github.com/kutaui/url-shortener/utils"
@@ -54,7 +53,7 @@ func Register(q *db.Queries) http.HandlerFunc {
 
 		_, err = q.GetUserByEmail(r.Context(), AuthRequest.Email)
 		if err == nil {
-			http.Error(w, "User already exists", http.StatusBadRequest)
+			http.Error(w, "Email already exists", http.StatusBadRequest)
 			return
 		}
 
@@ -101,8 +100,8 @@ func Register(q *db.Queries) http.HandlerFunc {
 			Value:    token,
 			Path:     "/",
 			MaxAge:   3600,
-			HttpOnly: true,
-			Secure:   os.Getenv("ENV") == "production",
+			HttpOnly: false,
+			Secure:   true,
 			SameSite: http.SameSiteNoneMode,
 		}
 

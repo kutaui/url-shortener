@@ -10,7 +10,7 @@ export const GetClicksGroupedByMonthQuery = () =>
     })
 
 
-export const GetMostClickedUrls = (): Promise<MostClicked[]> => axios.get(`/analytics/mostClicked`).then(response => response.data)
+export const GetMostClickedUrls = (): Promise<MostClickedLinks[]> => axios.get(`/analytics/mostClicked`).then(response => response.data)
 
 export const GetMostClickedUrlsQuery = () =>
     useQuery({

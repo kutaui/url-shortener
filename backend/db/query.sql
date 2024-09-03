@@ -21,11 +21,17 @@ UPDATE users SET password = $1 WHERE id = $2;
 SELECT
     u.id,
     u.long_url,
-    u.created_at
+    u.created_at,
+    u.code,
+    COUNT(c.id) as click_count
 FROM
     urls AS u
+LEFT JOIN
+    clicks AS c ON u.id = c.url_id
 WHERE
-    u.user_id = $1;
+    u.user_id = $1
+GROUP BY
+    u.id;
 
 -- name: GetUserUrlByLongUrl :one
 SELECT

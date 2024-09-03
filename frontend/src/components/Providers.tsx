@@ -1,18 +1,22 @@
 'use client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import axios from 'axios'
-import { getCookie } from 'cookies-next'
+import { getCookie, deleteCookie } from 'cookies-next'
+import { useRouter } from 'next/navigation'
 import React, {
 	createContext,
 	useEffect,
 	useLayoutEffect,
 	useState,
 } from 'react'
+import { useToast } from './ui/use-toast'
 
 export const BASE_URL = process.env.NEXT_PUBLIC_API_URL
 
 axios.defaults.baseURL = BASE_URL
 axios.defaults.withCredentials = true
+
+
 
 export const AuthContext = createContext<{
 	user: User | null
@@ -35,7 +39,27 @@ export default function Providers({
 		email: '',
 		password: '',
 	})
-
+	const router = useRouter()
+	const { toast } = useToast()
+	useEffect(() => {
+		const interceptor = axios.interceptors.response.use(
+			response => response,
+			error => {
+				if (error.response && error.response.status === 401 && error.response.message !== "Invalid Credentials") {
+					deleteCookie('USER')
+					toast({
+						title: 'Session expired',
+						description: 'Redirecting to login...',
+						variant: 'destructive',
+						itemID: "401"
+					})
+					router.replace('/login')
+				}
+				return Promise.reject(error)
+			}
+		)
+		return () => axios.interceptors.response.eject(interceptor)
+	}, [router])
 
 	useLayoutEffect(() => {
 		const storedUser = getCookie('USER')

@@ -17,11 +17,14 @@ type Props = {
     }
     title: string
     description?: string
+    open?: boolean
+    setOpen?: () => void
 }
 
-export function CustomDialog({ children, buttons, title, description }: Props) {
+export function CustomDialog({ children, buttons, title, description, open, setOpen }: Props) {
+
     return (
-        <Dialog>
+        <Dialog {...(open !== undefined && { open })} {...(setOpen && { onOpenChange: setOpen })}>
             <DialogTrigger asChild>
                 {buttons.Trigger}
             </DialogTrigger>

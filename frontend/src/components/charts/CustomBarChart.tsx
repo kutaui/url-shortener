@@ -22,11 +22,11 @@ interface GroupedByMonthLinks {
     clickCount: number;
 }
 
-// Utility function to format month strings
 const formatMonth = (monthStr: string) => {
     const [year, month] = monthStr.split("-");
-    const date = new Date(Number(year), Number(month) - 1); // Month is zero-based
-    return date.toLocaleString('default', { month: 'long' }); // E.g., "August"
+    const date = new Date(Number(year), Number(month) - 1);
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    return monthNames[date.getMonth()];
 };
 
 const chartConfig = {
@@ -37,9 +37,12 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function CustomBarChart({ data }: { data: GroupedByMonthLinks[] }) {
-    const chartData = data?.map((item) => ({
+    const colors = ["green", "blue", "yellow", "orange", "purple", "red"]
+
+    const chartData = data?.map((item, index) => ({
         month: formatMonth(item.month),
         clicks: item.clickCount,
+        fill: colors[index % colors.length],
     })) || [];
 
     const currentYear = new Date().getFullYear();
@@ -61,35 +64,51 @@ export function CustomBarChart({ data }: { data: GroupedByMonthLinks[] }) {
                 <CardDescription>{monthRange}</CardDescription>
             </CardHeader>
             <CardContent>
-                <ChartContainer config={chartConfig}>
-                    <BarChart data={chartData}>
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                            dataKey="month"
-                            tickLine={false}
-                            tickMargin={10}
-                            axisLine={false}
-                            tickFormatter={(value) => value}
-                        />
-                        <ChartTooltip
-                            cursor={false}
-                            content={<ChartTooltipContent indicator="dashed" />}
-                        />
-                        <Bar dataKey="clicks" fill="var(--color-desktop)" radius={4} />
-                    </BarChart>
-                </ChartContainer>
+                {chartData.length === 0 ? (
+                    <div>No data available</div>
+                ) : (
+                    <ChartContainer config={chartConfig}>
+                        <BarChart data={chartData}>
+                            <defs>
+                                <linearGradient id="colorGradient" x1="0" y1="0" x2="1" y2="0">
+                                    {colors.map((color, index) => (
+                                        <stop key={index} offset={`${(index / (colors.length - 1)) * 100}%`} stopColor={color} />
+                                    ))}
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid vertical={false} />
+                            <XAxis
+                                dataKey="month"
+                                tickLine={false}
+                                tickMargin={10}
+                                axisLine={false}
+                                tickFormatter={(value) => value}
+                            />
+                            <ChartTooltip
+                                cursor={false}
+                                content={<ChartTooltipContent indicator="dashed" />}
+                            />
+                            <Bar dataKey="clicks" fill="url(#colorGradient)" radius={4} barSize={50} />
+                        </BarChart>
+                    </ChartContainer>
+                )}
             </CardContent>
             <CardFooter className="flex-col items-start gap-2 text-sm">
-                <div className="flex gap-2 font-medium leading-none">
-                    {percentageChange > 0 ? "Trending up" : "Trending down"} by {Math.abs(percentageChange).toFixed(1)}% this month{" "}
-                    <TrendingUp className={`h-4 w-4 ${percentageChange < 0 ? "transform rotate-180" : ""}`} />
-                </div>
-                <div className="leading-none text-muted-foreground">
-                    Showing total visitors for the last {chartData.length} months
-                </div>
-                <div className="leading-none text-muted-foreground">
-                    Total clicks: {totalClicks}
-                </div>
+                {chartData.length > 0 ? (
+                    <>
+                        <div className="flex gap-2 font-medium leading-none">
+                            {percentageChange > 0 ? "Trending up" : "Trending down"} by {Math.abs(percentageChange).toFixed(1)}% this month
+                            <TrendingUp className={`h-4 w-4 ${percentageChange < 0 ? "transform rotate-180" : ""}`} />
+                        </div>
+                        <div className="leading-none text-muted-foreground">
+                            Showing total visitors for the last {chartData.length} months
+                        </div>
+                    </>
+                ) : (
+                    <div className="leading-none text-muted-foreground">
+                        No data to display
+                    </div>
+                )}
             </CardFooter>
         </Card>
     );
