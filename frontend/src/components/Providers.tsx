@@ -47,8 +47,9 @@ export default function Providers({
 				if (
 					error.response &&
 					error.response.status === 401 &&
-					error.response.message !== 'Invalid Credentials'
+					!error.response.data.trim().includes('Invalid Credentials')
 				) {
+					console.log(error.response)
 					deleteCookie('USER')
 					toast({
 						title: 'Session expired',

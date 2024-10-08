@@ -37,11 +37,20 @@ export function AuthForm({ login }: { login?: boolean }) {
 		onError: (error: any) => {
 			const errorMessage =
 				error.response?.data || error.message || 'Something Went Wrong'
-			toast({
-				title: 'Error',
-				description: errorMessage,
-				variant: 'destructive',
-			})
+
+			if (error.response?.status === 401) {
+				toast({
+					title: 'Error',
+					description: 'Invalid email or password.',
+					variant: 'destructive',
+				})
+			} else {
+				toast({
+					title: 'Error',
+					description: errorMessage,
+					variant: 'destructive',
+				})
+			}
 		},
 	})
 
@@ -60,6 +69,7 @@ export function AuthForm({ login }: { login?: boolean }) {
 		onError: (error: any) => {
 			const errorMessage =
 				error.response?.data || error.message || 'Something Went Wrong'
+
 			toast({
 				title: 'Error',
 				description: errorMessage,
