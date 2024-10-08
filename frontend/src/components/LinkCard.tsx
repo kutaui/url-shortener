@@ -114,7 +114,6 @@ export default function Component({ data, count, onClose }: Props) {
 						<span className="text-sm font-medium">{count} clicks</span>
 					</div>
 					<CustomDialog
-						open={open}
 						buttons={{
 							Trigger: (
 								<Button

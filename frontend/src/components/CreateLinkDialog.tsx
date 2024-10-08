@@ -71,7 +71,6 @@ export function CreateLinkDialog({ onClose }: Props) {
 
 	return (
 		<CustomDialog
-			open={open}
 			buttons={{
 				Trigger: (
 					<Button size="lg" onClick={() => setOpen(true)}>
