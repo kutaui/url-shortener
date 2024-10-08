@@ -36,6 +36,7 @@ import { usePathname } from 'next/navigation'
 import { useToast } from './ui/use-toast'
 import { useSSE } from '@/controllers/SSEhandler'
 import { ReactNode } from 'react'
+import { BASE_URL } from './Providers'
 
 interface NavProps {
 	isCollapsed: boolean
@@ -50,7 +51,7 @@ interface NavProps {
 
 export function Nav({ links, isCollapsed }: NavProps) {
 	const { toast } = useToast()
-	useSSE('http://127.0.0.1:8080/api/link-clicked-events', (data) => {
+	useSSE(`${BASE_URL}/api/link-clicked-events`, (data) => {
 		if (data.connected) {
 			console.log('Connected to SSE stream')
 		} else {

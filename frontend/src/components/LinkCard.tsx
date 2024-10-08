@@ -9,7 +9,7 @@ import { useToast } from './ui/use-toast'
 import { ExternalLink } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
 import { DeleteLink } from '@/controllers/LinkController'
-import axios from 'axios' // Assuming Axios is used for API calls
+import axios from 'axios'
 
 type Props = {
 	data: Link
