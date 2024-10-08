@@ -8,6 +8,7 @@ import React, {
 	useEffect,
 	useLayoutEffect,
 	useState,
+	useCallback,
 } from 'react'
 import { useToast } from './ui/use-toast'
 
@@ -19,9 +20,11 @@ axios.defaults.withCredentials = true
 export const AuthContext = createContext<{
 	user: User | null
 	setUser: React.Dispatch<React.SetStateAction<User | null>>
+	syncUser: () => void
 }>({
 	user: null,
 	setUser: () => null,
+	syncUser: () => null,
 })
 
 const queryClient = new QueryClient()
@@ -31,14 +34,15 @@ export default function Providers({
 }: Readonly<{
 	children: React.ReactNode
 }>) {
-	const [user, setUser] = useState<User | null>({
-		id: 0,
-		name: '',
-		email: '',
-		password: '',
-	})
+	const [user, setUser] = useState<User | null>(null)
 	const router = useRouter()
 	const { toast } = useToast()
+
+	const syncUser = useCallback(() => {
+		const storedUser = getCookie('USER')
+		const userInCookie = storedUser ? JSON.parse(storedUser as string) : null
+		setUser(userInCookie)
+	}, [])
 
 	useEffect(() => {
 		const interceptor = axios.interceptors.response.use(
@@ -51,6 +55,7 @@ export default function Providers({
 				) {
 					console.log(error.response)
 					deleteCookie('USER')
+					syncUser()
 					toast({
 						title: 'Session expired',
 						description: 'Redirecting to login...',
@@ -63,24 +68,19 @@ export default function Providers({
 			}
 		)
 		return () => axios.interceptors.response.eject(interceptor)
-	}, [router, toast])
+	}, [router, toast, syncUser])
 
 	useLayoutEffect(() => {
-		const storedUser = getCookie('USER')
-		const userInCookie = storedUser ? JSON.parse(storedUser) : null
-		setUser(userInCookie)
-	}, [])
-
-	if (user !== null && user.id === 0) {
-		return <div>Loading...</div>
-	}
+		syncUser()
+	}, [syncUser])
 
 	return (
 		<QueryClientProvider client={queryClient}>
 			<AuthContext.Provider
 				value={{
-					user: user,
-					setUser: setUser,
+					user,
+					setUser,
+					syncUser,
 				}}
 			>
 				{children}

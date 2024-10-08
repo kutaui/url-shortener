@@ -7,7 +7,7 @@ import {
 } from './ui/resizable'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
-import { buttonVariants } from './ui/button'
+import { Button, buttonVariants } from './ui/button'
 import {
 	Tooltip,
 	TooltipContent,
@@ -28,6 +28,7 @@ import {
 	ChartColumnBig,
 	Mail,
 	Megaphone,
+	LogOut,
 } from 'lucide-react'
 import { Separator } from './ui/separator'
 import { AuthContext } from './Providers'
@@ -151,10 +152,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 							setIsCollapsed(false)
 						}}
 						className={cn(
-							`${
-								isCollapsed &&
+							'h-screen',
+							isCollapsed &&
 								'min-w-[50px] transition-all duration-300 ease-in-out'
-							} h-screen`
 						)}
 					>
 						<div
@@ -221,6 +221,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 									variant:
 										pathname === '/dashboard/settings' ? 'default' : 'ghost',
 									href: '/dashboard/settings',
+								},
+								{
+									title: 'Logout',
+									label: '',
+									icon: LogOut,
+									variant:
+										pathname === '/dashboard/settings' ? 'default' : 'ghost',
+									href: '/logout',
 								},
 							]}
 						/>

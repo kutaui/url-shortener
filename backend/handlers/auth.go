@@ -181,3 +181,34 @@ func Login(q *db.Queries) http.HandlerFunc {
 		_, _ = w.Write(responseJSON)
 	}
 }
+
+func Logout() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cookie := http.Cookie{
+			Name:     "token",
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: false,
+			Secure:   true,
+			SameSite: http.SameSiteNoneMode,
+		}
+
+		http.SetCookie(w, &cookie)
+
+		response := Response{
+			Status:  "ok",
+			Message: "Logged out successfully",
+		}
+
+		responseJSON, err := json.Marshal(response)
+		if err != nil {
+			http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(responseJSON)
+	}
+}
