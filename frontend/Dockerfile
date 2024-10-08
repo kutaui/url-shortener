@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package.json bun.lockb ./
 
 # Install dependencies
-RUN bun i
+RUN npm ci
 
 # Copy the rest of your app's source code
 COPY . .
@@ -20,7 +20,7 @@ RUN npm run build
 # Expose the port Next.js runs on
 EXPOSE 3000
 
-ENV NEXT_PUBLIC_API_URL=http://backend:8080
+ENV NEXT_PUBLIC_API_URL=https://shortie-api.kutaybekleric.com/
 ENV HOSTNAME="0.0.0.0"
 
 # Start the app
