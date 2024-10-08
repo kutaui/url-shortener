@@ -1,20 +1,40 @@
 version: '3.8'
 
 services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - '--api.insecure=true' # Enable Traefik dashboard on /traefik (optional)
+      - '--providers.docker=true'
+      - '--entrypoints.web.address=:80'
+      - '--entrypoints.websecure.address=:443'
+      - '--entrypoints.web.forwardedheaders.trustedips=0.0.0.0/0'
+      - '--entrypoints.websecure.forwardedheaders.trustedips=0.0.0.0/0'
+      - '--certificatesresolvers.myresolver.acme.httpchallenge=true'
+      - '--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web'
+      - '--certificatesresolvers.myresolver.acme.email=hi@kutaybekleric.com'
+      - '--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json'
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - './letsencrypt:/letsencrypt'
+    networks:
+      - app-network
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    environment:
-      - URL_SHORTENER_ENV=development
-      - DATABASE_URL=postgresql://user:password@postgres:5432/urlshortener
-      - REDIS_URL=redis://redis:6379
-      - FRONTEND_URL=http://localhost:3000
-    depends_on:
-      - postgres
-      - redis
+    env_file:
+      - .env
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.backend.rule=Host(`shortie-api.kutaybekleric.com`)'
+      - 'traefik.http.routers.backend.entrypoints=websecure'
+      - 'traefik.http.routers.backend.tls.certresolver=myresolver'
+      - 'traefik.http.services.backend.loadbalancer.server.port=8080'
     networks:
       - app-network
 
@@ -22,34 +42,19 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://backend:8080
+      - NEXT_PUBLIC_API_URL=https://shortie-api.kutaybekleric.com/
     depends_on:
       - backend
-    networks:
-      - app-network
-
-  postgres:
-    image: postgres:14
-    environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=urlshortener
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    networks:
-      - app-network
-
-  redis:
-    image: redis:7
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.frontend.rule=Host(`shortie.kutaybekleric.com`)'
+      - 'traefik.http.routers.frontend.entrypoints=websecure'
+      - 'traefik.http.routers.frontend.tls.certresolver=myresolver'
+      - 'traefik.http.services.frontend.loadbalancer.server.port=3000'
     networks:
       - app-network
 
 networks:
   app-network:
     driver: bridge
-
-volumes:
-  postgres-data:
