@@ -43,7 +43,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     environment:
-      - NEXT_PUBLIC_API_URL=https://shortie-api.kutaybekleric.com/
+      - NEXT_PUBLIC_API_URL=https://shortie-api.kutaybekleric.com
     depends_on:
       - backend
     labels:
