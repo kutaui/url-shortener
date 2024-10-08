@@ -2,14 +2,15 @@
 import React, { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Check, Copy, MousePointerClick } from 'lucide-react'
+import { Check, Copy, MousePointerClick, ExternalLink } from 'lucide-react'
 import { CustomDialog } from './CustomDialog'
 import { DialogClose } from './ui/dialog'
 import { useToast } from './ui/use-toast'
-import { ExternalLink } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
 import { DeleteLink } from '@/controllers/LinkController'
+import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
+import Image from 'next/image'
 
 type Props = {
 	data: Link
@@ -21,10 +22,13 @@ export default function Component({ data, count, onClose }: Props) {
 	const { toast } = useToast()
 	const [copied, setCopied] = useState(false)
 	const [open, setOpen] = useState(false)
+	const [isHovered, setIsHovered] = useState(false)
 
 	const handleCopy = async () => {
 		try {
-			await navigator.clipboard.writeText(data.longUrl)
+			await navigator.clipboard.writeText(
+				`${process.env.NEXT_PUBLIC_API_URL}/${data?.code}`
+			)
 			setCopied(true)
 			setTimeout(() => setCopied(false), 1500)
 		} catch (err: any) {
@@ -49,7 +53,6 @@ export default function Component({ data, count, onClose }: Props) {
 			setOpen(false)
 		},
 		onError: (error) => {
-			// Check if the error is an AxiosError
 			if (axios.isAxiosError(error)) {
 				const errorMessage =
 					error.response?.data || error.message || 'Something Went Wrong'
@@ -59,7 +62,6 @@ export default function Component({ data, count, onClose }: Props) {
 					variant: 'destructive',
 				})
 			} else {
-				// Handle other types of errors
 				const errorMessage = error
 				toast({
 					title: 'Error',
@@ -82,17 +84,39 @@ export default function Component({ data, count, onClose }: Props) {
 					<h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
 						{data?.code}
 					</h2>
-					<div className="flex items-center justify-between">
+					<div className="relative flex items-center justify-between">
 						<h3 className="text-sm text-gray-600 dark:text-gray-400 truncate mr-2 flex-grow">
 							<a
-								className="text-blue-500 hover:underline flex items-center gap-1"
-								href={data?.longUrl}
+								className="text-blue-500 hover:underline flex items-center gap-1 w-fit "
+								href={process.env.NEXT_PUBLIC_API_URL + '/' + data?.code}
 								target="_blank"
 								rel="noopener noreferrer"
+								onMouseEnter={() => setIsHovered(true)}
+								onMouseLeave={() => setIsHovered(false)}
 							>
-								{data?.longUrl}
+								{process.env.NEXT_PUBLIC_API_URL}/{data?.code}
+								<ExternalLink className="h-4 w-4" />
 							</a>
 						</h3>
+						{/* Tooltip with Image */}
+						<AnimatePresence>
+							{isHovered && (
+								<motion.div
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: 10 }}
+									className="absolute top-8 left-0 z-10 w-48 p-2 bg-white border border-gray-200 shadow-md rounded-md"
+								>
+									<img
+										src={
+											data.previewImage ? data.previewImage : '/megamind3.jpg'
+										}
+										alt="Tooltip Image"
+										className="w-full h-auto"
+									/>
+								</motion.div>
+							)}
+						</AnimatePresence>
 						<Button
 							variant="outline"
 							size="icon"

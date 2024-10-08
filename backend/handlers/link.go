@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	db "github.com/kutaui/url-shortener/db/sqlc"
 	"github.com/kutaui/url-shortener/utils"
 )
@@ -23,11 +24,12 @@ type DeleteLinkRequest struct {
 }
 
 type LinkResponse struct {
-	ID         int64  `json:"id"`
-	LongUrl    string `json:"longUrl"`
-	CreatedAt  string `json:"createdAt"`
-	Code       string `json:"code"`
-	ClickCount int64  `json:"clickCount"`
+	ID           int64  `json:"id"`
+	LongUrl      string `json:"longUrl"`
+	CreatedAt    string `json:"createdAt"`
+	Code         string `json:"code"`
+	ClickCount   int64  `json:"clickCount"`
+	PreviewImage string `json:"previewImage"`
 }
 
 func GetLinks(q *db.Queries) http.HandlerFunc {
@@ -44,11 +46,12 @@ func GetLinks(q *db.Queries) http.HandlerFunc {
 		var linkResponses []LinkResponse
 		for _, link := range links {
 			linkResponses = append(linkResponses, LinkResponse{
-				ID:         link.ID,
-				LongUrl:    link.LongUrl,
-				CreatedAt:  link.CreatedAt.Time.Format(time.RFC3339),
-				Code:       link.Code,
-				ClickCount: link.ClickCount,
+				ID:           link.ID,
+				LongUrl:      link.LongUrl,
+				CreatedAt:    link.CreatedAt.Time.Format(time.RFC3339),
+				Code:         link.Code,
+				ClickCount:   link.ClickCount,
+				PreviewImage: link.PreviewImage.String,
 			})
 		}
 
@@ -150,6 +153,7 @@ func CreateShortenedLink(q *db.Queries) http.HandlerFunc {
 			return
 		}
 
+		// Check if link already exists for the user
 		asd, err := q.GetUserUrlByLongUrl(r.Context(), db.GetUserUrlByLongUrlParams{
 			LongUrl: linkReq.Link,
 			UserID:  userID,
@@ -183,10 +187,19 @@ func CreateShortenedLink(q *db.Queries) http.HandlerFunc {
 			}
 		}
 
+		// Fetch the preview image metadata
+		previewImage, err := utils.FetchPreviewImage(linkReq.Link)
+		if err != nil {
+			fmt.Println("Failed to fetch preview image:", err)
+			previewImage = "" // Set to empty string if fetching fails
+		}
+
+		// Save the shortened link with the preview image
 		_, err = q.CreateUrl(r.Context(), db.CreateUrlParams{
-			Code:    code,
-			LongUrl: linkReq.Link,
-			UserID:  userID,
+			Code:         code,
+			LongUrl:      linkReq.Link,
+			UserID:       userID,
+			PreviewImage: pgtype.Text{String: previewImage, Valid: true},
 		})
 
 		if err != nil {
@@ -207,7 +220,7 @@ func CreateShortenedLink(q *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		fmt.Printf("Link created successfully. Code: %s, LongUrl: %s, UserID: %d\n", code, linkReq.Link, userID)
+		fmt.Printf("Link created successfully. Code: %s, LongUrl: %s, PreviewImage: %s, UserID: %d\n", code, linkReq.Link, previewImage, userID)
 
 		_, _ = w.Write(responseJSON)
 	}

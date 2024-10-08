@@ -4,7 +4,8 @@ CREATE TABLE
         long_url VARCHAR(2048) NOT NULL UNIQUE,
         code VARCHAR(255) NOT NULL UNIQUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        user_id BIGINT NOT NULL REFERENCES users (id) ON DELETE CASCADE
+        user_id BIGINT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        preview_image TEXT
     );
 
 CREATE TABLE

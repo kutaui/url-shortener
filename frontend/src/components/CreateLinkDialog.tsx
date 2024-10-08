@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React from 'react'
 import { CustomDialog } from '@/components/CustomDialog'
 import { Button } from '@/components/ui/button'
 import { DialogClose } from '@/components/ui/dialog'
@@ -23,7 +23,6 @@ export function CreateLinkDialog({ onClose }: Props) {
 		formState: { errors },
 		reset,
 	} = useForm()
-	const [open, setOpen] = useState(false)
 
 	const createLinkMutation = useMutation({
 		mutationFn: CreateLinkRequest,
@@ -34,14 +33,9 @@ export function CreateLinkDialog({ onClose }: Props) {
 				variant: 'success',
 			})
 			reset()
-			onClose()
-			setOpen(false)
-			document
-				.querySelector('[data-state="open"]')
-				?.dispatchEvent(new Event('close'))
+			onClose() // Call onClose to close the dialog
 		},
 		onError: (error) => {
-			// Check if the error is an AxiosError
 			if (axios.isAxiosError(error)) {
 				const errorMessage =
 					error.response?.data || error.message || 'Something Went Wrong'
@@ -50,14 +44,14 @@ export function CreateLinkDialog({ onClose }: Props) {
 					description: errorMessage,
 					variant: 'destructive',
 				})
+			} else {
+				const errorMessage = error.message || 'Something Went Wrong'
+				toast({
+					title: 'Error',
+					description: errorMessage,
+					variant: 'destructive',
+				})
 			}
-			// Handle other types of errors
-			const errorMessage = error.message || 'Something Went Wrong'
-			toast({
-				title: 'Error',
-				description: errorMessage,
-				variant: 'destructive',
-			})
 		},
 	})
 
@@ -72,19 +66,11 @@ export function CreateLinkDialog({ onClose }: Props) {
 	return (
 		<CustomDialog
 			buttons={{
-				Trigger: (
-					<Button size="lg" onClick={() => setOpen(true)}>
-						Shorten Link
-					</Button>
-				),
+				Trigger: <Button size="lg">Shorten Link</Button>,
 				Submit: (
 					<>
 						<DialogClose asChild>
-							<Button
-								type="button"
-								variant="secondary"
-								onClick={() => setOpen(false)}
-							>
+							<Button type="button" variant="secondary">
 								Cancel
 							</Button>
 						</DialogClose>

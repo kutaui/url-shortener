@@ -23,6 +23,7 @@ SELECT
     u.long_url,
     u.created_at,
     u.code,
+    u.preview_image,
     COUNT(c.id) as click_count
 FROM
     urls AS u
@@ -47,7 +48,8 @@ SELECT
     id,
     long_url,
     created_at,
-    user_id
+    user_id,
+    preview_image
 FROM
     urls
 WHERE
@@ -57,7 +59,8 @@ WHERE
 SELECT
     id,
     long_url,
-    created_at
+    created_at,
+    preview_image
 FROM
     urls
 WHERE
@@ -74,8 +77,8 @@ WHERE
 
 -- name: CreateUrl :one
 WITH new_url AS (
-    INSERT INTO urls (long_url,  user_id, code)
-    VALUES ($1, $2, $3) RETURNING id
+    INSERT INTO urls (long_url,  user_id, code, preview_image)
+    VALUES ($1, $2, $3, $4) RETURNING id
 )
 SELECT id FROM new_url;
 
@@ -115,6 +118,7 @@ SELECT
     u.id,
     u.long_url,
     u.code,
+    u.preview_image,
     COUNT(c.id) as click_count
 FROM 
     urls u
