@@ -5,7 +5,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copy package.json and bun.lockb
-COPY package.json bun.lockb ./
+COPY package*.json ./
 
 # Install dependencies
 RUN npm ci
