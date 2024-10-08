@@ -8,14 +8,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN bun i
 
 # Copy the rest of your app's source code
 COPY . .
 ENV NODE_ENV=production
 
 # Build your Next.js app
-RUN npm run build
+RUN bun run build
 
 # Expose the port Next.js runs on
 EXPOSE 3000
@@ -24,4 +24,4 @@ ENV NEXT_PUBLIC_API_URL=http://backend:8080
 ENV HOSTNAME="0.0.0.0"
 
 # Start the app
-CMD ["npm", "start"]
+CMD ["bun", "start"]

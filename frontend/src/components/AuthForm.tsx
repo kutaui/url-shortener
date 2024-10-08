@@ -16,7 +16,11 @@ export function AuthForm({ login }: { login?: boolean }) {
 	const { toast } = useToast()
 	const router = useRouter()
 	const { setUser, user } = useContext(AuthContext)
-	const { register, handleSubmit, formState: { errors } } = useForm()
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm()
 
 	const loginMutation = useMutation({
 		mutationFn: LoginRequest,
@@ -31,7 +35,8 @@ export function AuthForm({ login }: { login?: boolean }) {
 			router.replace('/dashboard')
 		},
 		onError: (error: any) => {
-			const errorMessage = error.response?.data || error.message || "Something Went Wrong"
+			const errorMessage =
+				error.response?.data || error.message || 'Something Went Wrong'
 			toast({
 				title: 'Error',
 				description: errorMessage,
@@ -53,7 +58,8 @@ export function AuthForm({ login }: { login?: boolean }) {
 			router.replace('/dashboard')
 		},
 		onError: (error: any) => {
-			const errorMessage = error.response?.data || error.message || "Something Went Wrong"
+			const errorMessage =
+				error.response?.data || error.message || 'Something Went Wrong'
 			toast({
 				title: 'Error',
 				description: errorMessage,
@@ -63,12 +69,19 @@ export function AuthForm({ login }: { login?: boolean }) {
 	})
 
 	const handleLogin = async (data: any) => {
-		const userLoginData: UserLoginType = { email: data.email, password: data.password }
+		const userLoginData: UserLoginType = {
+			email: data.email,
+			password: data.password,
+		}
 		loginMutation.mutate(userLoginData)
 	}
 
 	const handleRegister = async (data: any) => {
-		const userRegisterData: UserRegisterType = { name: data.name, email: data.email, password: data.password }
+		const userRegisterData: UserRegisterType = {
+			name: data.name,
+			email: data.email,
+			password: data.password,
+		}
 		registerMutation.mutate(userRegisterData)
 	}
 
@@ -81,7 +94,10 @@ export function AuthForm({ login }: { login?: boolean }) {
 				{login ? 'Sign in to your account' : 'Sign up to get started'}
 			</p>
 
-			<form className="my-8" onSubmit={handleSubmit(login ? handleLogin : handleRegister)}>
+			<form
+				className="my-8"
+				onSubmit={handleSubmit(login ? handleLogin : handleRegister)}
+			>
 				{!login && (
 					<LabelInputContainer className="mb-4">
 						<Label htmlFor="name">Name</Label>
@@ -91,7 +107,11 @@ export function AuthForm({ login }: { login?: boolean }) {
 							type="text"
 							{...register('name', { required: 'Name is required' })}
 						/>
-						{errors.name && <p className="text-red-500 text-sm">{String(errors.name.message)}</p>}
+						{errors.name && (
+							<p className="text-red-500 text-sm">
+								{String(errors.name.message)}
+							</p>
+						)}
 					</LabelInputContainer>
 				)}
 
@@ -109,7 +129,11 @@ export function AuthForm({ login }: { login?: boolean }) {
 							},
 						})}
 					/>
-					{errors.email && <p className="text-red-500 text-sm">{String(errors.email.message)}</p>}
+					{errors.email && (
+						<p className="text-red-500 text-sm">
+							{String(errors.email.message)}
+						</p>
+					)}
 				</LabelInputContainer>
 
 				<LabelInputContainer className="mb-4">
@@ -126,7 +150,11 @@ export function AuthForm({ login }: { login?: boolean }) {
 							},
 						})}
 					/>
-					{errors.password && <p className="text-red-500 text-sm">{String(errors.password.message)}</p>}
+					{errors.password && (
+						<p className="text-red-500 text-sm">
+							{String(errors.password.message)}
+						</p>
+					)}
 				</LabelInputContainer>
 
 				<button
@@ -140,7 +168,7 @@ export function AuthForm({ login }: { login?: boolean }) {
 
 			{login ? (
 				<p>
-					Don't have an Account ?
+					Don&apos;t have an Account ?
 					<Link
 						href="/register"
 						className="text-primary font-semibold underline ml-1"

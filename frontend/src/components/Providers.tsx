@@ -16,8 +16,6 @@ export const BASE_URL = process.env.NEXT_PUBLIC_API_URL
 axios.defaults.baseURL = BASE_URL
 axios.defaults.withCredentials = true
 
-
-
 export const AuthContext = createContext<{
 	user: User | null
 	setUser: React.Dispatch<React.SetStateAction<User | null>>
@@ -41,17 +39,22 @@ export default function Providers({
 	})
 	const router = useRouter()
 	const { toast } = useToast()
+
 	useEffect(() => {
 		const interceptor = axios.interceptors.response.use(
-			response => response,
-			error => {
-				if (error.response && error.response.status === 401 && error.response.message !== "Invalid Credentials") {
+			(response) => response,
+			(error) => {
+				if (
+					error.response &&
+					error.response.status === 401 &&
+					error.response.message !== 'Invalid Credentials'
+				) {
 					deleteCookie('USER')
 					toast({
 						title: 'Session expired',
 						description: 'Redirecting to login...',
 						variant: 'destructive',
-						itemID: "401"
+						itemID: '401',
 					})
 					router.replace('/login')
 				}
@@ -59,7 +62,7 @@ export default function Providers({
 			}
 		)
 		return () => axios.interceptors.response.eject(interceptor)
-	}, [router])
+	}, [router, toast])
 
 	useLayoutEffect(() => {
 		const storedUser = getCookie('USER')

@@ -1,16 +1,40 @@
 'use client'
 import React, { useContext } from 'react'
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from './ui/resizable'
+import {
+	ResizableHandle,
+	ResizablePanel,
+	ResizablePanelGroup,
+} from './ui/resizable'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { buttonVariants } from './ui/button'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
-import { Archive, ArchiveX, Inbox, LucideIcon, Send, Users, File, LayoutDashboard, Link as LinkIcon, Settings, ChartColumnBig, Mail, Megaphone } from 'lucide-react'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from './ui/tooltip'
+import {
+	Archive,
+	ArchiveX,
+	Inbox,
+	LucideIcon,
+	Send,
+	Users,
+	File,
+	LayoutDashboard,
+	Link as LinkIcon,
+	Settings,
+	ChartColumnBig,
+	Mail,
+	Megaphone,
+} from 'lucide-react'
 import { Separator } from './ui/separator'
 import { AuthContext } from './Providers'
 import { usePathname } from 'next/navigation'
 import { useToast } from './ui/use-toast'
 import { useSSE } from '@/controllers/SSEhandler'
+import { ReactNode } from 'react'
 
 interface NavProps {
 	isCollapsed: boolean
@@ -18,26 +42,25 @@ interface NavProps {
 		title: string
 		label?: string
 		icon: LucideIcon
-		variant: "default" | "ghost"
+		variant: 'default' | 'ghost'
 		href: string
 	}[]
 }
-
 
 export function Nav({ links, isCollapsed }: NavProps) {
 	const { toast } = useToast()
 	useSSE('http://127.0.0.1:8080/api/link-clicked-events', (data) => {
 		if (data.connected) {
-			console.log('Connected to SSE stream');
+			console.log('Connected to SSE stream')
 		} else {
-			console.log('Link clicked:', data);
+			console.log('Link clicked:', data)
 			toast({
 				title: 'Link Clicked',
 				description: ` Your link with the code: ${data.code} has been clicked.`,
 				variant: 'success',
 			})
 		}
-	});
+	})
 	return (
 		<div
 			data-collapsed={isCollapsed}
@@ -51,10 +74,10 @@ export function Nav({ links, isCollapsed }: NavProps) {
 								<Link
 									href={link.href}
 									className={cn(
-										buttonVariants({ variant: link.variant, size: "icon" }),
-										"h-9 w-9",
-										link.variant === "default" &&
-										"dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
+										buttonVariants({ variant: link.variant, size: 'icon' }),
+										'h-9 w-9',
+										link.variant === 'default' &&
+											'dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white'
 									)}
 								>
 									<link.icon className="h-4 w-4" />
@@ -75,10 +98,10 @@ export function Nav({ links, isCollapsed }: NavProps) {
 							key={index}
 							href={link.href}
 							className={cn(
-								buttonVariants({ variant: link.variant, size: "sm" }),
-								link.variant === "default" &&
-								"dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white",
-								"justify-start"
+								buttonVariants({ variant: link.variant, size: 'sm' }),
+								link.variant === 'default' &&
+									'dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white',
+								'justify-start'
 							)}
 						>
 							<link.icon className="mr-2 h-4 w-4" />
@@ -86,9 +109,9 @@ export function Nav({ links, isCollapsed }: NavProps) {
 							{link.label && (
 								<span
 									className={cn(
-										"ml-auto",
-										link.variant === "default" &&
-										"text-background dark:text-white"
+										'ml-auto',
+										link.variant === 'default' &&
+											'text-background dark:text-white'
 									)}
 								>
 									{link.label}
@@ -102,19 +125,14 @@ export function Nav({ links, isCollapsed }: NavProps) {
 	)
 }
 
-export default function DashboardLayout({
-	children
-}) {
-
+export default function DashboardLayout({ children }: { children: ReactNode }) {
 	const { user } = useContext(AuthContext)
 
 	const [isCollapsed, setIsCollapsed] = React.useState(false)
 	const pathname = usePathname()
 
-
 	return (
 		<aside>
-
 			<TooltipProvider delayDuration={0}>
 				<ResizablePanelGroup
 					direction="horizontal"
@@ -132,13 +150,17 @@ export default function DashboardLayout({
 						onResize={() => {
 							setIsCollapsed(false)
 						}}
-						className={cn(`${isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out"} h-screen`
+						className={cn(
+							`${
+								isCollapsed &&
+								'min-w-[50px] transition-all duration-300 ease-in-out'
+							} h-screen`
 						)}
 					>
 						<div
 							className={cn(
-								"flex h-[52px] items-center justify-center m-1",
-								isCollapsed ? "h-[52px]" : "px-2"
+								'flex h-[52px] items-center justify-center m-1',
+								isCollapsed ? 'h-[52px]' : 'px-2'
 							)}
 						>
 							{!isCollapsed && `Welcome, ${user?.name}`}
@@ -148,58 +170,60 @@ export default function DashboardLayout({
 							isCollapsed={isCollapsed}
 							links={[
 								{
-									title: "Dashboard",
+									title: 'Dashboard',
 									icon: LayoutDashboard,
-									variant: pathname === "/dashboard" ? "default" : "ghost",
-									href: "/dashboard"
+									variant: pathname === '/dashboard' ? 'default' : 'ghost',
+									href: '/dashboard',
 								},
 								{
-									title: "My Links",
+									title: 'My Links',
 									icon: LinkIcon,
-									variant: pathname === "/dashboard/mylinks" ? "default" : "ghost",
-									href: "/dashboard/mylinks"
+									variant:
+										pathname === '/dashboard/mylinks' ? 'default' : 'ghost',
+									href: '/dashboard/mylinks',
 								},
 								{
-									title: "Campaigns",
-									label: "",
+									title: 'Campaigns',
+									label: '',
 									icon: Megaphone,
-									variant: pathname === "/dashboard/campaigns" ? "default" : "ghost",
-									href: "/dashboard/campaigns"
+									variant:
+										pathname === '/dashboard/campaigns' ? 'default' : 'ghost',
+									href: '/dashboard/campaigns',
 								},
 								{
-									title: "Team",
+									title: 'Team',
 									icon: Users,
-									variant: "ghost",
-									href: "#"
+									variant: 'ghost',
+									href: '#',
 								},
 								{
-									title: "Messages",
+									title: 'Messages',
 									icon: Mail,
-									variant: "ghost",
-									href: "#"
+									variant: 'ghost',
+									href: '#',
 								},
 								{
-									title: "Analytics",
+									title: 'Analytics',
 									icon: ChartColumnBig,
-									variant: "ghost",
-									href: "#"
+									variant: 'ghost',
+									href: '#',
 								},
 								{
-									title: "More Stuff",
+									title: 'More Stuff',
 									icon: ArchiveX,
-									variant: "ghost",
-									href: "#"
+									variant: 'ghost',
+									href: '#',
 								},
 								{
-									title: "Settings",
-									label: "",
+									title: 'Settings',
+									label: '',
 									icon: Settings,
-									variant: pathname === "/dashboard/settings" ? "default" : "ghost",
-									href: "/dashboard/settings"
+									variant:
+										pathname === '/dashboard/settings' ? 'default' : 'ghost',
+									href: '/dashboard/settings',
 								},
 							]}
 						/>
-
 					</ResizablePanel>
 					<ResizableHandle withHandle />
 					<ResizablePanel defaultSize={30} minSize={30}>
