@@ -13,6 +13,8 @@ import { useToast } from './ui/use-toast'
 import { useForm } from 'react-hook-form'
 
 export function AuthForm({ login }: { login?: boolean }) {
+	console.log(process.env.NEXT_PUBLIC_API_URL)
+
 	const { toast } = useToast()
 	const router = useRouter()
 	const { setUser, user } = useContext(AuthContext)
@@ -150,7 +152,7 @@ export function AuthForm({ login }: { login?: boolean }) {
 					<Label htmlFor="password">Password</Label>
 					<Input
 						id="password"
-						placeholder="••••••••"
+						placeholder="123456"
 						type="password"
 						{...register('password', {
 							required: 'Password is required',
