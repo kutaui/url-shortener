@@ -24,6 +24,7 @@ type MostClickedUrl struct {
 func GetMostClickedUrls(q *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Context().Value("userID").(int64)
+		fmt.Printf("GetMostClickedUrls called for userID: %d\n", userID)
 
 		urls, err := q.GetMostClickedUrls(r.Context(), userID)
 		if err != nil {
@@ -32,7 +33,8 @@ func GetMostClickedUrls(q *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		// Map the data to the camelCase struct
+		fmt.Printf("Fetched %d most clicked URLs for userID: %d\n", len(urls), userID)
+
 		var response []MostClickedUrl
 		for _, url := range urls {
 			response = append(response, MostClickedUrl{
@@ -45,18 +47,21 @@ func GetMostClickedUrls(q *db.Queries) http.HandlerFunc {
 
 		responseJSON, err := json.Marshal(response)
 		if err != nil {
+			fmt.Println("Error marshalling response to JSON:", err)
 			http.Error(w, "Failed to marshal URLs", http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(responseJSON)
+		fmt.Println("Most clicked URLs successfully sent to client.")
 	}
 }
 
 func GetClicksGroupedByMonth(q *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Context().Value("userID").(int64)
+		fmt.Printf("GetClicksGroupedByMonth called for userID: %d\n", userID)
 
 		currentYear := time.Now().Year()
 		clickCounts, err := q.GetClicksByUserGroupedByMonth(r.Context(), userID)
@@ -65,6 +70,8 @@ func GetClicksGroupedByMonth(q *db.Queries) http.HandlerFunc {
 			http.Error(w, "Failed to get clicks grouped by month", http.StatusInternalServerError)
 			return
 		}
+
+		fmt.Printf("Fetched click counts for userID: %d\n", userID)
 
 		var formattedClickCounts []ClickCountByMonth
 		for _, cc := range clickCounts {
@@ -79,18 +86,21 @@ func GetClicksGroupedByMonth(q *db.Queries) http.HandlerFunc {
 
 		responseJSON, err := json.Marshal(formattedClickCounts)
 		if err != nil {
+			fmt.Println("Error marshalling click counts to JSON:", err)
 			http.Error(w, "Failed to marshal click counts", http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(responseJSON)
+		fmt.Println("Click counts grouped by month successfully sent to client.")
 	}
 }
 
 func GetTotalClicks(q *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Context().Value("userID").(int64)
+		fmt.Printf("GetTotalClicks called for userID: %d\n", userID)
 
 		totalClicks, err := q.GetClicksByUser(r.Context(), userID)
 		if err != nil {
@@ -99,14 +109,18 @@ func GetTotalClicks(q *db.Queries) http.HandlerFunc {
 			return
 		}
 
+		fmt.Printf("Total clicks for userID %d: %d\n", userID, totalClicks)
+
 		response := map[string]int64{"totalClicks": totalClicks}
 		responseJSON, err := json.Marshal(response)
 		if err != nil {
+			fmt.Println("Error marshalling total clicks to JSON:", err)
 			http.Error(w, "Failed to marshal total clicks", http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(responseJSON)
+		fmt.Println("Total clicks successfully sent to client.")
 	}
 }
