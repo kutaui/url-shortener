@@ -12,6 +12,8 @@ RUN npm ci
 
 # Copy the rest of your app's source code
 COPY . .
+
+ENV NEXT_PUBLIC_API_URL=https://shortie-api.kutaybekleric.com
 ENV NODE_ENV=production
 
 # Build your Next.js app
@@ -20,7 +22,6 @@ RUN npm run build
 # Expose the port Next.js runs on
 EXPOSE 3000
 
-ENV NEXT_PUBLIC_API_URL=https://shortie-api.kutaybekleric.com
 ENV HOSTNAME="0.0.0.0"
 
 # Start the app
