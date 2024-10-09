@@ -1,3 +1,4 @@
+# .github/workflows/docker-publish.yml
 name: Publish Docker image
 
 on:
@@ -21,11 +22,19 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push backend Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          tags: kutaui/shortie:${{ github.ref_name }}
+          context: ./backend
+          file: ./backend/Dockerfile
+          tags: kutaui/shortie-backend:${{ github.ref_name }}
+
+      - name: Build and push frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          tags: kutaui/shortie-frontend:${{ github.ref_name }}
 
       - name: Log out from Docker Hub
         run: docker logout
