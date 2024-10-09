@@ -37,7 +37,6 @@ export default function Providers({
 	const [user, setUser] = useState<User | null>(null)
 	const router = useRouter()
 	const { toast } = useToast()
-	console.log(BASE_URL, 'provider')
 	const syncUser = useCallback(() => {
 		const storedUser = getCookie('USER')
 		const userInCookie = storedUser ? JSON.parse(storedUser as string) : null
@@ -53,7 +52,6 @@ export default function Providers({
 					error.response.status === 401 &&
 					!error.response.data.trim().includes('Invalid Credentials')
 				) {
-					console.log(error.response)
 					deleteCookie('USER')
 					syncUser()
 					toast({
