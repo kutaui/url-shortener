@@ -27,6 +27,7 @@ jobs:
         with:
           context: ./backend
           file: ./backend/Dockerfile
+          push: true
           tags: kutaui/shortie-backend:latest
 
       - name: Build and push frontend Docker image
@@ -34,6 +35,7 @@ jobs:
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
+          push: true
           tags: kutaui/shortie-frontend:latest
 
       - name: Log out from Docker Hub
