@@ -33,7 +33,7 @@ export default function Home() {
 						/>
 						<div className="absolute inset-y-0 right-0 flex items-center px-2">
 							<Link href="/register" passHref legacyBehavior>
-								<Button className="h-12">Shorten✨ Link</Button>
+								<Button className="h-12">Shorten Link</Button>
 							</Link>
 						</div>
 					</div>
