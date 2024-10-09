@@ -13,7 +13,6 @@ import { useToast } from './ui/use-toast'
 import { useForm } from 'react-hook-form'
 
 export function AuthForm({ login }: { login?: boolean }) {
-	console.log(process.env.NEXT_PUBLIC_API_URL)
 
 	const { toast } = useToast()
 	const router = useRouter()
