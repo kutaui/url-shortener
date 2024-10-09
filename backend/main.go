@@ -57,7 +57,8 @@ func main() {
 	// Non-auth routes
 	router.HandleFunc("POST /register", handlers.Register(q))
 	router.HandleFunc("POST /login", handlers.Login(q))
-	router.HandleFunc("GET /logout", handlers.Logout())
+	router.HandleFunc("GET /auth/logout", handlers.Logout())
+	router.HandleFunc("GET /health/status", handlers.HealthCheck)
 	router.HandleFunc("GET /{code}", handlers.Redirect(q, rdb))
 
 	server := &http.Server{
