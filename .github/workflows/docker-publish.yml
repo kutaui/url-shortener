@@ -2,8 +2,9 @@
 name: Publish Docker image
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - main
 
 jobs:
   build:
@@ -27,14 +28,14 @@ jobs:
         with:
           context: ./backend
           file: ./backend/Dockerfile
-          tags: kutaui/shortie-backend:${{ github.ref_name }}
+          tags: kutaui/shortie-backend:latest
 
       - name: Build and push frontend Docker image
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
-          tags: kutaui/shortie-frontend:${{ github.ref_name }}
+          tags: kutaui/shortie-frontend:latest
 
       - name: Log out from Docker Hub
         run: docker logout
