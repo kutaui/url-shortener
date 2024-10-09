@@ -24,9 +24,7 @@ services:
       - app-network
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: kutaui/shortie-backend:latest
     env_file:
       - .env
     labels:
@@ -39,9 +37,7 @@ services:
       - app-network
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: kutaui/shortie-frontend:latest
     environment:
       - NEXT_PUBLIC_API_URL=https://shortie-api.kutaybekleric.com
     depends_on:

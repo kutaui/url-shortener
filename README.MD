@@ -10,7 +10,9 @@
 
 # Introduction
 
-URL shortening service with analytics and real-time notifications. Using Golang's standard library for the backend and Next.js for the frontend. Used caching, sorting, and drag and drop features to enhance the user experience.
+URL shortening service with analytics and real-time notifications. Using Golang's standard library for the backend and Next.js for the frontend. Used caching, sorting, and drag and drop features to enhance the user experience. There are also some easter eggs.
+
+Apart from my other projects, I hosted this project's frontend and backend on my VPS. I used Docker Compose, Traefik for proxy and Watchtower for automated deploys. You can check out the `Dockerfile` and `docker-compose.yml`
 
 ## Tech Stack
 
@@ -19,6 +21,7 @@ URL shortening service with analytics and real-time notifications. Using Golang'
 - Tanstack Query
 - TailwindCSS
 - shadcn/ui
+- Framer Motion
 - Recharts
 - dnd-kit
 - Golang
@@ -26,6 +29,7 @@ URL shortening service with analytics and real-time notifications. Using Golang'
 - Redis
 - Server Sent Events
 - Docker
+- GitHub Actions
 
 ## Features
 
