@@ -55,6 +55,17 @@ services:
     networks:
       - app-network
 
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300
+    restart: always
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
