@@ -189,7 +189,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 									icon: Megaphone,
 									variant:
 										pathname === '/dashboard/campaigns' ? 'default' : 'ghost',
-									href: '/dashboard/campaigns',
+									href: '#',
 								},
 								{
 									title: 'Team',
@@ -221,7 +221,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 									icon: Settings,
 									variant:
 										pathname === '/dashboard/settings' ? 'default' : 'ghost',
-									href: '/dashboard/settings',
+									href: '#',
 								},
 								{
 									title: 'Logout',
