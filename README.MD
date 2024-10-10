@@ -1,5 +1,5 @@
 <div align="center">
-<h1>Thought Pocket</h1>
+<h1>Shortie</h1>
 
 [Live](https://shortie.kutaybekleric.com)
 
