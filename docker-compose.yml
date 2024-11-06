@@ -1,55 +1,24 @@
 version: '3.8'
-
 services:
-  traefik:
-    image: traefik:v2.10
-    command:
-      - '--api.insecure=true' # Enable Traefik dashboard on /traefik (optional)
-      - '--providers.docker=true'
-      - '--entrypoints.web.address=:80'
-      - '--entrypoints.websecure.address=:443'
-      - '--entrypoints.web.forwardedheaders.trustedips=0.0.0.0/0'
-      - '--entrypoints.websecure.forwardedheaders.trustedips=0.0.0.0/0'
-      - '--certificatesresolvers.myresolver.acme.httpchallenge=true'
-      - '--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web'
-      - '--certificatesresolvers.myresolver.acme.email=hi@kutaybekleric.com'
-      - '--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json'
-    ports:
-      - '80:80'
-      - '443:443'
-    volumes:
-      - '/var/run/docker.sock:/var/run/docker.sock:ro'
-      - './letsencrypt:/letsencrypt'
-    networks:
-      - app-network
-
   backend:
     image: kutaui/shortie-backend:latest
     env_file:
       - .env
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.routers.backend.rule=Host(`shortie-api.kutaybekleric.com`)'
-      - 'traefik.http.routers.backend.entrypoints=websecure'
-      - 'traefik.http.routers.backend.tls.certresolver=myresolver'
-      - 'traefik.http.services.backend.loadbalancer.server.port=8080'
+    ports:
+      - "8080:8080"
     networks:
-      - app-network
+      - shortie-network
 
   frontend:
     image: kutaui/shortie-frontend:latest
     environment:
       - NEXT_PUBLIC_API_URL=https://shortie-api.kutaybekleric.com
+    ports:
+      - "3000:3000"
     depends_on:
       - backend
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.routers.frontend.rule=Host(`shortie.kutaybekleric.com`)'
-      - 'traefik.http.routers.frontend.entrypoints=websecure'
-      - 'traefik.http.routers.frontend.tls.certresolver=myresolver'
-      - 'traefik.http.services.frontend.loadbalancer.server.port=3000'
     networks:
-      - app-network
+      - shortie-network
 
   watchtower:
     image: containrrr/watchtower
@@ -60,8 +29,8 @@ services:
       - WATCHTOWER_POLL_INTERVAL=300
     restart: always
     networks:
-      - app-network
+      - shortie-network
 
 networks:
-  app-network:
+  shortie-network:
     driver: bridge
